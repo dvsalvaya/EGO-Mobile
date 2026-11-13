@@ -4,7 +4,7 @@
 
 - **ID:** `fase-3-habitos`
 - **Nome:** Gestão e Registro de Hábitos com Frequência Flexível
-- **Status:** `APPROVED`
+- **Status:** `VERIFIED`
 - **Aprovação:** Aprovado pelo responsável do produto em 2026-10-28 para orientar a implementação direta pelos modelos executores. Decisões fechadas: modelo de frequência tipado (diário, dias da semana, X vezes por semana), separação estrita de `Habit` e `HabitOccurrence`, diálogo de transição na mudança de frequência e tratamento sem penalidade cega para ocorrências não cumpridas.
 
 ---

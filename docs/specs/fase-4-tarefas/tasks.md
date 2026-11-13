@@ -16,7 +16,7 @@
 | `TASK-04` | Implementar casos de uso: reagendamento e exclusão com suporte a desfazer | `VERIFIED` | `TASK-03` |
 | `TASK-05` | Implementar `TasksViewModel` e gestão de estado `TasksUiState` | `VERIFIED` | `TASK-04` |
 | `TASK-06` | Implementar `TasksScreen`, diálogos (criação, reagendamento, exclusão) e Snackbar com Undo | `VERIFIED` | `TASK-05` |
-| `TASK-07` | Verificação de ponta a ponta e testes de critérios de aceite | `IN_PROGRESS` | `TASK-06` |
+| `TASK-07` | Verificação de ponta a ponta e testes de critérios de aceite | `VERIFIED` | `TASK-06` |
 
 ---
 
@@ -155,12 +155,5 @@
 ---
 
 ### `TASK-07`: Verificação de ponta a ponta e testes de critérios de aceite
-- **Status:** `IN_PROGRESS`
-- **Objetivo:** Rodar todos os testes de tarefas e integração, garantindo `AC-01` a `AC-08`.
-- **Referência à especificação:** Critérios `AC-01` a `AC-08`.
-- **Pré-requisitos e dependências:** `TASK-06`.
-- **Componentes envolvidos:** Toda a suíte de testes do projeto.
-- **Critérios de aceite:**
-  1. Todos os critérios de aceite documentados e validados.
-  2. `./gradlew testDebugUnitTest` executado com 100% de sucesso.
-- **Definição de pronto:** Relatório de verificação concluído.
+- **Status:** `VERIFIED`
+- **Evidências:** Suíte completa de testes unitários (`TaskDomainTest`, `TaskUseCasesTest`, `TaskRepositoryImplTest`, `TasksViewModelTest`, `TaskDaoTest`) executando com 100% de sucesso. Critérios `AC-01` a `AC-08` verificados.

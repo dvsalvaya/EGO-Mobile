@@ -24,7 +24,7 @@
 | `TASK-04` | Implementar `WorkoutViewModel` e gerenciar `WorkoutUiState` | `COMPLETED` | `TASK-03` |
 | `TASK-05` | Implementar telas de treino: painel de entrada, tela de execução ativa e diálogo de exercícios | `COMPLETED` | `TASK-04` |
 | `TASK-06` | Implementar histórico de treinos e finalização de sessão | `COMPLETED` | `TASK-05` |
-| `TASK-07` | Verificação de ponta a ponta e testes de critérios de aceite | `IN_PROGRESS` | `TASK-06` |
+| `TASK-07` | Verificação de ponta a ponta e testes de critérios de aceite | `COMPLETED` | `TASK-06` |
 
 ---
 
@@ -133,8 +133,9 @@
 ---
 
 ### `TASK-07`: Verificação de ponta a ponta e testes de critérios de aceite
-- **Status:** `IN_PROGRESS`
+- **Status:** `COMPLETED`
 - **Objetivo:** Executar suíte completa de testes e validar os critérios `AC-01` a `AC-07`.
 - **Referência à especificação:** Critérios `AC-01` a `AC-07`.
 - **Pré-requisitos e dependências:** `TASK-06`.
-- **Componentes envolvidos:** Toda a suíte de testes unitários.
+- **Componentes envolvidos:** Toda a suíte de testes unitários (`WorkoutDomainTest`, `WorkoutDaoTest`, `WorkoutRepositoryTest`, `WorkoutViewModelTest`).
+- **Resultado:** Suíte de testes unitários passando 100%. Todos os critérios `AC-01` a `AC-07` validados.

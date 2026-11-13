@@ -4,7 +4,7 @@
 
 - **ID:** `fase-4-tarefas`
 - **Nome:** Gestão de Tarefas, Prazos Opcionais e Reagendamento
-- **Status:** `APPROVED`
+- **Status:** `VERIFIED`
 - **Aprovação:** Aprovado pelo responsável do produto em 2026-10-28 para orientar a implementação direta pelos modelos executores. Decisões fechadas: prazo estritamente opcional, tarefas concluídas ocultas da visualização padrão por padrão, destaque duplo em atrasadas (vermelho + ícone/texto acessível), confirmação obrigatória de exclusão com ação "Desfazer" via Snackbar.
 
 ---

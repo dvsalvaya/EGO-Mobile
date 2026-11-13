@@ -4,7 +4,7 @@
 
 - **ID:** `fase-1-esqueleto-app`
 - **Nome:** Esqueleto do aplicativo
-- **Status:** `IN_PROGRESS`
+- **Status:** `VERIFIED`
 - **Aprovação:** Aprovado pelo responsável do produto em 2026-10-28. Decisão Q1 registrada: retorno ao Início a partir de destinos secundários.
 
 Esta especificação descreve a Fase 1 do Roadmap e está autorizada para decomposição e implementação técnica conforme os portões do projeto.

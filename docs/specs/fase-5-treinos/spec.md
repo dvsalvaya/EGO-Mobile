@@ -4,7 +4,7 @@
 
 - **ID:** `fase-5-treinos`
 - **Nome:** Registro Manual de Treinos e Persistência de Sessão em Andamento
-- **Status:** `APPROVED`
+- **Status:** `VERIFIED`
 - **Aprovação:** Aprovado pelo responsável do produto em 2026-10-28 para orientar a implementação direta pelos modelos executores. Decisões fechadas: persistência automática no SQLite para evitar perda ao fechar/sair do app, proibição estrita de criar duplicatas ao reabrir, registro manual flexível de exercícios (séries, repetições, peso) e finalização com histórico.
 
 ---
