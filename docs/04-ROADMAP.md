@@ -94,18 +94,18 @@ O MVP não tem prazo artificial. O trabalho deve avançar em incrementos pequeno
 
 ## Fase 7 — Tela inicial e histórico
 
-- [ ] Criar resumo equilibrado.
-- [ ] Adicionar atalhos de criação de hábito e tarefa.
-- [ ] Mostrar tarefas atrasadas.
-- [ ] Mostrar estados de hábitos e rotinas de forma útil.
-- [ ] Completar a área de histórico separada.
-- [ ] Verificar consistência entre resumo, listas e histórico.
+- [x] Criar resumo equilibrado.
+- [x] Adicionar atalhos de criação de hábito e tarefa.
+- [x] Mostrar tarefas atrasadas.
+- [x] Mostrar estados de hábitos e rotinas de forma útil.
+- [x] Completar a área de histórico separada.
+- [x] Verificar consistência entre resumo, listas e histórico.
 
 **Concluída quando:** a tela inicial informa o que é útil sem duplicar todo o histórico.
 
 ## Fase 8 — Qualidade e acabamento do MVP
 
-- [ ] Revisar acessibilidade e contraste.
+- [x] Revisar acessibilidade e contraste.
 - [ ] Revisar tratamento de erros.
 - [ ] Executar testes unitários e instrumentados relevantes.
 - [ ] Testar persistência após reinício do app.

@@ -31,6 +31,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.ego.mobile.domain.model.Task
 import com.ego.mobile.feature.tasks.components.DeleteConfirmDialog
@@ -42,8 +44,9 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 @Composable
-fun TasksScreen() {
-    val viewModel = rememberTasksViewModel()
+fun TasksScreen(
+    viewModel: TasksViewModel = rememberTasksViewModel(),
+) {
     val uiState by viewModel.tasksUiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showForm by remember { mutableStateOf(false) }
@@ -83,6 +86,9 @@ fun TasksScreen() {
                         editingTask = null
                         showForm = true
                     },
+                    modifier = Modifier.semantics {
+                        contentDescription = "Adicionar tarefa"
+                    },
                 ) {
                     Text("+")
                 }
@@ -105,7 +111,7 @@ fun TasksScreen() {
                             else "Exibir concluídas (${uiState.completedTasks.size})",
                         )
                     }
-                    uiState.errorMessage?.let {
+                    uiState.errorMessage?.takeIf { uiState.visibleTasks.isNotEmpty() }?.let {
                         Text(
                             text = it,
                             color = MaterialTheme.colorScheme.error,
@@ -120,6 +126,20 @@ fun TasksScreen() {
                         contentAlignment = Alignment.Center,
                     ) {
                         CircularProgressIndicator()
+                    }
+
+                    uiState.visibleTasks.isEmpty() && uiState.errorMessage != null -> Column(
+                        modifier = Modifier.fillMaxSize().padding(24.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        uiState.errorMessage?.let { message ->
+                            Text(
+                                text = message,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
                     }
 
                     uiState.visibleTasks.isEmpty() -> Column(

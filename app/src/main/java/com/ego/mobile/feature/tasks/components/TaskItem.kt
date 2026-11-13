@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -17,6 +18,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -56,6 +59,11 @@ fun TaskItem(
                 checked = task.status == TaskStatus.COMPLETED,
                 onCheckedChange = { if (it) onComplete() },
                 enabled = task.status == TaskStatus.OPEN,
+                modifier = Modifier
+                    .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                    .semantics {
+                        contentDescription = "Concluir tarefa: ${task.title}"
+                    },
             )
             Column(
                 modifier = Modifier.weight(1f),
@@ -102,11 +110,26 @@ fun TaskItem(
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    TextButton(onClick = onEdit) { Text("Editar") }
-                    if (isOverdue) {
-                        OutlinedButton(onClick = onReschedule) { Text("Reagendar") }
+                    TextButton(
+                        onClick = onEdit,
+                        modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp),
+                    ) {
+                        Text("Editar")
                     }
-                    TextButton(onClick = onDelete) { Text("Excluir") }
+                    if (isOverdue) {
+                        OutlinedButton(
+                            onClick = onReschedule,
+                            modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp),
+                        ) {
+                            Text("Reagendar")
+                        }
+                    }
+                    TextButton(
+                        onClick = onDelete,
+                        modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp),
+                    ) {
+                        Text("Excluir")
+                    }
                 }
             }
         }

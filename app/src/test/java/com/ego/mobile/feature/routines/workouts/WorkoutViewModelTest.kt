@@ -10,6 +10,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -30,8 +31,11 @@ class FakeWorkoutRepository : WorkoutRepository {
     private val activeSessionFlow = MutableStateFlow<WorkoutSession?>(null)
     private val completedSessionsFlow = MutableStateFlow<List<WorkoutSession>>(emptyList())
     private var nextExerciseId = 1L
+    var loadError: Throwable? = null
 
-    override fun getActiveSession(): Flow<WorkoutSession?> = activeSessionFlow
+    override fun getActiveSession(): Flow<WorkoutSession?> = loadError?.let { error ->
+        flow { throw error }
+    } ?: activeSessionFlow
 
     override suspend fun getActiveSessionSync(): WorkoutSession? = activeSessionFlow.value
 
@@ -147,6 +151,17 @@ class WorkoutViewModelTest {
         } finally {
             viewModelStore.clear()
         }
+    }
+
+    @Test
+    fun `load errors are exposed as a user-visible state message`() = runTest(testDispatcher) {
+        repository.loadError = IllegalStateException("Falha ao carregar treinos.")
+        val viewModel = createViewModel()
+
+        runCurrent()
+
+        assertFalse(viewModel.uiState.value.isLoading)
+        assertEquals("Falha ao carregar treinos.", viewModel.uiState.value.errorMessage)
     }
 
     @Test

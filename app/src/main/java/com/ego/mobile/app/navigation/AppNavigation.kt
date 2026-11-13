@@ -28,10 +28,18 @@ fun AppNavigation() {
     }
 
     val screenContent: @Composable () -> Unit = when (destination) {
-        AppDestination.HOME -> { { HomeScreen() } }
+        AppDestination.HOME -> {
+            {
+                HomeScreen(
+                    onContinueRoutine = { type ->
+                        navigationState.navigateToRoutine(type)
+                    },
+                )
+            }
+        }
         AppDestination.HABITS -> { { HabitsScreen() } }
         AppDestination.TASKS -> { { TasksScreen() } }
-        AppDestination.ROUTINES -> { { RoutinesScreen() } }
+        AppDestination.ROUTINES -> { { RoutinesScreen(navigationState.routinesInitialTab) } }
         AppDestination.HISTORY -> { { HistoryScreen() } }
     }
 

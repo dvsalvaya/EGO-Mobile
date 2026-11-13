@@ -4,7 +4,7 @@
 
 - **ID:** `fase-7-tela-inicial-e-historico`
 - **Nome:** Tela Inicial Unificada e Histórico Consolidado
-- **Status:** `APPROVED`
+- **Status:** `VERIFIED`
 - **Aprovação:** Aprovado pelo responsável do produto em 2026-10-28 para orientar a implementação direta pelos modelos executores. Decisões fechadas: tela inicial como resumo equilibrado de hoje + atalhos rápidos para Hábito e Tarefa; destino Histórico como área separada e dedicada (sem transformar a Home em feed infinito), consolidando hábitos, tarefas, treinos e cuidados capilares com total consistência local.
 
 ---

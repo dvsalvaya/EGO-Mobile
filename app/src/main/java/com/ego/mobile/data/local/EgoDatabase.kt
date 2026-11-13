@@ -6,10 +6,13 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.ego.mobile.data.local.dao.HabitDao
 import com.ego.mobile.data.local.dao.HabitOccurrenceDao
+import com.ego.mobile.data.local.dao.HaircareDao
 import com.ego.mobile.data.local.dao.TaskDao
 import com.ego.mobile.data.local.dao.WorkoutDao
 import com.ego.mobile.data.local.entity.HabitEntity
 import com.ego.mobile.data.local.entity.HabitOccurrenceEntity
+import com.ego.mobile.data.local.entity.HaircareOccurrenceEntity
+import com.ego.mobile.data.local.entity.HaircareRoutineEntity
 import com.ego.mobile.data.local.entity.TaskEntity
 import com.ego.mobile.data.local.entity.WorkoutExerciseEntity
 import com.ego.mobile.data.local.entity.WorkoutSessionEntity
@@ -83,6 +86,37 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
     }
 }
 
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `haircare_routines` (" +
+                "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`name` TEXT NOT NULL, `source` TEXT NOT NULL, `description` TEXT, " +
+                "`createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL)",
+        )
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `haircare_occurrences` (" +
+                "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `routineId` INTEGER NOT NULL, " +
+                "`stepType` TEXT NOT NULL, `stepTitle` TEXT NOT NULL, `scheduledDate` TEXT NOT NULL, " +
+                "`executedAt` INTEGER, `status` TEXT NOT NULL, `notes` TEXT, `orderIndex` INTEGER NOT NULL, " +
+                "FOREIGN KEY(`routineId`) REFERENCES `haircare_routines`(`id`) " +
+                "ON UPDATE NO ACTION ON DELETE CASCADE)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_haircare_occurrences_routineId` " +
+                "ON `haircare_occurrences` (`routineId`)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_haircare_occurrences_scheduledDate` " +
+                "ON `haircare_occurrences` (`scheduledDate`)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_haircare_occurrences_status` " +
+                "ON `haircare_occurrences` (`status`)",
+        )
+    }
+}
+
 @Database(
     entities = [
         HabitEntity::class,
@@ -90,8 +124,10 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
         TaskEntity::class,
         WorkoutSessionEntity::class,
         WorkoutExerciseEntity::class,
+        HaircareRoutineEntity::class,
+        HaircareOccurrenceEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class EgoDatabase : RoomDatabase() {
@@ -99,4 +135,5 @@ abstract class EgoDatabase : RoomDatabase() {
     abstract fun habitOccurrenceDao(): HabitOccurrenceDao
     abstract fun taskDao(): TaskDao
     abstract fun workoutDao(): WorkoutDao
+    abstract fun haircareDao(): HaircareDao
 }

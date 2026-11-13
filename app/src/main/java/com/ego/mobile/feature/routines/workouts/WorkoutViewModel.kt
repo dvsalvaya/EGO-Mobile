@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -48,6 +49,11 @@ class WorkoutViewModel(
                 elapsedTimeMillis = elapsed,
                 isLoading = false,
             )
+        }.catch { error ->
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                errorMessage = error.message ?: "Não foi possível carregar os treinos.",
+            )
         }.onEach { state ->
             _uiState.value = state
         }.launchIn(viewModelScope)
@@ -63,7 +69,6 @@ class WorkoutViewModel(
                     eventChannel.send(WorkoutEvent.SessionStarted)
                 }
                 .onFailure { error ->
-                    _uiState.value = _uiState.value.copy(errorMessage = error.message)
                     eventChannel.send(WorkoutEvent.Error(error.message ?: "Erro ao iniciar treino"))
                 }
         }
@@ -73,8 +78,10 @@ class WorkoutViewModel(
         val currentId = _uiState.value.activeSession?.id ?: return
         viewModelScope.launch {
             repository.pauseSession(currentId)
-                .onFailure { error ->
-                    _uiState.value = _uiState.value.copy(errorMessage = error.message)
+                .onFailure {
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = it.message ?: "Não foi possível pausar o treino.",
+                    )
                 }
         }
     }
@@ -83,8 +90,10 @@ class WorkoutViewModel(
         val currentId = _uiState.value.activeSession?.id ?: return
         viewModelScope.launch {
             repository.resumeSession(currentId)
-                .onFailure { error ->
-                    _uiState.value = _uiState.value.copy(errorMessage = error.message)
+                .onFailure {
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = it.message ?: "Não foi possível retomar o treino.",
+                    )
                 }
         }
     }
@@ -97,7 +106,6 @@ class WorkoutViewModel(
                     eventChannel.send(WorkoutEvent.SessionCompleted)
                 }
                 .onFailure { error ->
-                    _uiState.value = _uiState.value.copy(errorMessage = error.message)
                     eventChannel.send(WorkoutEvent.Error(error.message ?: "Erro ao finalizar treino"))
                 }
         }
@@ -110,8 +118,10 @@ class WorkoutViewModel(
                 .onSuccess {
                     eventChannel.send(WorkoutEvent.SessionDiscarded)
                 }
-                .onFailure { error ->
-                    _uiState.value = _uiState.value.copy(errorMessage = error.message)
+                .onFailure {
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = it.message ?: "Não foi possível descartar o treino.",
+                    )
                 }
         }
     }
@@ -146,8 +156,10 @@ class WorkoutViewModel(
             )
 
             repository.addExercise(exercise)
-                .onFailure { error ->
-                    _uiState.value = _uiState.value.copy(errorMessage = error.message)
+                .onFailure {
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = it.message ?: "Não foi possível adicionar o exercício.",
+                    )
                 }
         }
     }
@@ -155,8 +167,10 @@ class WorkoutViewModel(
     fun removeExercise(exerciseId: Long) {
         viewModelScope.launch {
             repository.removeExercise(exerciseId)
-                .onFailure { error ->
-                    _uiState.value = _uiState.value.copy(errorMessage = error.message)
+                .onFailure {
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = it.message ?: "Não foi possível remover o exercício.",
+                    )
                 }
         }
     }

@@ -30,14 +30,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.ego.mobile.domain.model.Habit
 import com.ego.mobile.domain.model.HabitFrequency
 import com.ego.mobile.domain.model.HabitStatus
 
 @Composable
-fun HabitsScreen() {
-    val viewModel = rememberHabitsViewModel()
+fun HabitsScreen(
+    viewModel: HabitsViewModel = rememberHabitsViewModel(),
+) {
     val uiState by viewModel.uiState.collectAsState()
     var isDialogOpen by remember { mutableStateOf(false) }
 
@@ -46,7 +49,23 @@ fun HabitsScreen() {
         color = MaterialTheme.colorScheme.background,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            if (uiState.isEmpty && !uiState.isLoading) {
+            if (uiState.errorMessage != null && uiState.isEmpty) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    uiState.errorMessage?.let { message ->
+                        Text(
+                            text = message,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            } else if (uiState.isEmpty && !uiState.isLoading) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -71,45 +90,55 @@ fun HabitsScreen() {
                     }
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp, vertical = 20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    if (uiState.activeHabits.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = "Ativos",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                        }
-                        items(uiState.activeHabits) { habit ->
-                            HabitCard(
-                                habit = habit,
-                                onQuickComplete = { viewModel.onQuickComplete(habit.id) },
-                                onPause = { viewModel.onPauseHabit(habit.id) },
-                                onResume = { viewModel.onResumeHabit(habit.id) },
-                            )
-                        }
+                Column(modifier = Modifier.fillMaxSize()) {
+                    uiState.errorMessage?.let { message ->
+                        Text(
+                            text = message,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
                     }
-
-                    if (uiState.pausedHabits.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = "Pausados",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.SemiBold,
-                            )
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 16.dp, vertical = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        if (uiState.activeHabits.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "Ativos",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                            items(uiState.activeHabits) { habit ->
+                                HabitCard(
+                                    habit = habit,
+                                    onQuickComplete = { viewModel.onQuickComplete(habit.id) },
+                                    onPause = { viewModel.onPauseHabit(habit.id) },
+                                    onResume = { viewModel.onResumeHabit(habit.id) },
+                                )
+                            }
                         }
-                        items(uiState.pausedHabits) { habit ->
-                            HabitCard(
-                                habit = habit,
-                                onQuickComplete = null,
-                                onPause = null,
-                                onResume = { viewModel.onResumeHabit(habit.id) },
-                            )
+
+                        if (uiState.pausedHabits.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "Pausados",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                            items(uiState.pausedHabits) { habit ->
+                                HabitCard(
+                                    habit = habit,
+                                    onQuickComplete = null,
+                                    onPause = null,
+                                    onResume = { viewModel.onResumeHabit(habit.id) },
+                                )
+                            }
                         }
                     }
                 }
@@ -119,7 +148,8 @@ fun HabitsScreen() {
                 onClick = { isDialogOpen = true },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(20.dp),
+                    .padding(20.dp)
+                    .semantics { contentDescription = "Adicionar hábito" },
             ) {
                 Text("+")
             }
@@ -209,7 +239,12 @@ private fun HabitCard(
                 )
 
                 if (habit.status == HabitStatus.ACTIVE && onQuickComplete != null) {
-                    Button(onClick = onQuickComplete) {
+                    Button(
+                        onClick = onQuickComplete,
+                        modifier = Modifier.semantics {
+                            contentDescription = "Concluir hábito: ${habit.name}"
+                        },
+                    ) {
                         Text("✓")
                     }
                 } else if (habit.status == HabitStatus.PAUSED && onResume != null) {

@@ -4,7 +4,7 @@
 
 - **ID:** `fase-6-cuidados-capilares`
 - **Nome:** Rotinas e Cronograma de Cuidados Capilares
-- **Status:** `IN_PROGRESS`
+- **Status:** `VERIFIED`
 - **Aprovação:** Aprovado pelo responsável do produto em 2026-10-28 para orientar a implementação direta pelos modelos executores. Decisões fechadas: predefinições totalmente editáveis (ponto de partida facultativo), suporte a etapas típicas (Hidratação, Nutrição, Reconstrução, Umectação, etc.), registro de execução real com timestamp e reagendamento sem perdas.
 
 ---

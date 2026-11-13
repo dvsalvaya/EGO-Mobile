@@ -4,7 +4,7 @@
 
 - **ID:** `fase-8-qualidade-e-acabamento`
 - **Nome:** Qualidade, Acessibilidade, Auditoria de Escopo e Acabamento do MVP
-- **Status:** `APPROVED`
+- **Status:** `COMPLETED`
 - **Aprovação:** Aprovado pelo responsável do produto em 2026-10-28 para orientar a implementação direta pelos modelos executores. Decisões fechadas: verificação completa de acessibilidade (WCAG AA, áreas de toque >= 48dp), auditoria rigorosa de proibições do PRD (zero dependências de rede, zero permissões desnecessárias, zero gamificação/XP/moedas), suíte de testes 100% verde e documentação final do projeto no README.
 
 ---

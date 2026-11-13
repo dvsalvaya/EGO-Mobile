@@ -9,6 +9,7 @@ import com.ego.mobile.data.local.EgoDatabase
 import com.ego.mobile.data.local.MIGRATION_1_2
 import com.ego.mobile.data.local.MIGRATION_2_3
 import com.ego.mobile.data.local.MIGRATION_3_4
+import com.ego.mobile.data.local.MIGRATION_4_5
 import com.ego.mobile.data.local.entity.TaskEntity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -102,7 +103,7 @@ class TaskDaoTest {
         legacyDatabase.close()
 
         val migratedDatabase = Room.databaseBuilder(context, EgoDatabase::class.java, databaseName)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .build()
         try {
             assertEquals("Hábito antigo", migratedDatabase.habitDao().getById(1L)?.name)
