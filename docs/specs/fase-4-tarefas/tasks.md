@@ -10,20 +10,21 @@
 
 | ID | Tarefa | Status | Dependências |
 |---|---|---|---|
-| `TASK-01` | Implementar modelo de domínio `Task`, regras de validação e classificação de atraso | `PENDING` | Nenhuma |
-| `TASK-02` | Implementar `TaskEntity`, `TaskDao` e registrar no `EgoDatabase` | `PENDING` | `TASK-01` |
-| `TASK-03` | Implementar `TaskRepository` e operações de conclusão, reagendamento e exclusão | `PENDING` | `TASK-02` |
-| `TASK-04` | Implementar casos de uso: reagendamento e exclusão com suporte a desfazer | `PENDING` | `TASK-03` |
-| `TASK-05` | Implementar `TasksViewModel` e gestão de estado `TasksUiState` | `PENDING` | `TASK-04` |
-| `TASK-06` | Implementar `TasksScreen`, diálogos (criação, reagendamento, exclusão) e Snackbar com Undo | `PENDING` | `TASK-05` |
-| `TASK-07` | Verificação de ponta a ponta e testes de critérios de aceite | `PENDING` | `TASK-06` |
+| `TASK-01` | Implementar modelo de domínio `Task`, regras de validação e classificação de atraso | `VERIFIED` | Nenhuma |
+| `TASK-02` | Implementar `TaskEntity`, `TaskDao` e registrar no `EgoDatabase` | `VERIFIED` | `TASK-01` |
+| `TASK-03` | Implementar `TaskRepository` e operações de conclusão, reagendamento e exclusão | `VERIFIED` | `TASK-02` |
+| `TASK-04` | Implementar casos de uso: reagendamento e exclusão com suporte a desfazer | `VERIFIED` | `TASK-03` |
+| `TASK-05` | Implementar `TasksViewModel` e gestão de estado `TasksUiState` | `VERIFIED` | `TASK-04` |
+| `TASK-06` | Implementar `TasksScreen`, diálogos (criação, reagendamento, exclusão) e Snackbar com Undo | `VERIFIED` | `TASK-05` |
+| `TASK-07` | Verificação de ponta a ponta e testes de critérios de aceite | `IN_PROGRESS` | `TASK-06` |
 
 ---
 
 ## Detalhamento das Tarefas
 
 ### `TASK-01`: Implementar modelo de domínio `Task`, regras de validação e classificação de atraso
-- **Status:** `PENDING`
+- **Status:** `VERIFIED`
+- **Evidência:** `TaskDomainTest` passou, cobrindo título obrigatório e limites de tamanho, prazo ausente, atraso e estado concluído.
 - **Objetivo:** Criar o modelo puro Kotlin `Task`, enum `TaskStatus`, e regras puras de verificação: tarefa válida, tarefa atrasada (`isOverdue(currentTimeMillis)`), sem prazo (`dueAt == null`).
 - **Referência à especificação:** Critérios `AC-01`, `AC-02`, `AC-03`.
 - **Pré-requisitos e dependências:** Nenhuma.
@@ -44,7 +45,8 @@
 ---
 
 ### `TASK-02`: Implementar `TaskEntity`, `TaskDao` e registrar no `EgoDatabase`
-- **Status:** `PENDING`
+- **Status:** `VERIFIED`
+- **Evidência:** `connectedDebugAndroidTest` passou com teste in-memory de ordenação/estado, operações do DAO e migração do schema 2 para 3 preservando hábitos.
 - **Objetivo:** Criar tabela `tasks` no Room com `TaskEntity`, interface `TaskDao` e métodos reativos para emitir abertas e concluídas.
 - **Referência à especificação:** Critérios `AC-01`, `AC-04`, Seção 9 (Persistência).
 - **Pré-requisitos e dependências:** `TASK-01`.
@@ -53,28 +55,29 @@
   - `app/src/main/java/com/ego/mobile/data/local/dao/TaskDao.kt`
   - `app/src/main/java/com/ego/mobile/data/local/mapper/TaskMapper.kt`
   - `app/src/main/java/com/ego/mobile/data/local/EgoDatabase.kt`
-  - `app/src/test/java/com/ego/mobile/data/local/dao/TaskDaoTest.kt`
+  - `app/src/androidTest/java/com/ego/mobile/data/local/dao/TaskDaoTest.kt`
 - **Critérios de aceite:**
   1. `TaskDao` expõe `getOpenTasks(): Flow<List<TaskEntity>>` e `getCompletedTasks(): Flow<List<TaskEntity>>`.
   2. Métodos de inserção, atualização e deleção física/lógica.
   3. `EgoDatabase` inclui `TaskEntity` com schema atualizado.
 - **Testes necessários (TDD):**
-  - **RED:** `TaskDaoTest` em memória executando inserção, consulta de abertas e atualização para concluída.
+  - **RED:** `TaskDaoTest` em memória executando inserção, consulta de abertas e atualização para concluída via instrumentação Android.
   - **GREEN:** Implementação da entidade, DAO e mapper.
   - **REFACTOR:** Consultas ordenadas por `dueAt ASC NULLS LAST`.
-- **Definição de pronto:** `TaskDaoTest` passa em `./gradlew testDebugUnitTest`.
+- **Definição de pronto:** `TaskDaoTest` passa em `./gradlew :app:connectedDebugAndroidTest`.
 
 ---
 
 ### `TASK-03`: Implementar `TaskRepository` e operações de conclusão, reagendamento e exclusão
-- **Status:** `PENDING`
+- **Status:** `VERIFIED`
+- **Evidência:** `TaskRepositoryImplTest` passou cobrindo criação sem prazo, conclusão, reagendamento, exclusão, restauração e tarefa inexistente.
 - **Objetivo:** Implementar o repositório `TaskRepository` desacoplando Room da UI.
 - **Referência à especificação:** Critérios `AC-01`, `AC-04`, `AC-06`, `AC-07`.
 - **Pré-requisitos e dependências:** `TASK-02`.
 - **Componentes envolvidos:**
-  - `app/src/main/java/com/ego/mobile/data/repository/TaskRepository.kt`
+  - `app/src/main/java/com/ego/mobile/domain/repository/TaskRepository.kt`
   - `app/src/main/java/com/ego/mobile/data/repository/TaskRepositoryImpl.kt`
-  - `app/src/test/java/com/ego/mobile/data/repository/TaskRepositoryTest.kt`
+  - `app/src/test/java/com/ego/mobile/data/repository/TaskRepositoryImplTest.kt`
 - **Critérios de aceite:**
   1. Fornece `getOpenTasks()` e `getCompletedTasks()` como `Flow<List<Task>>`.
   2. `createTask(...)`, `updateTask(...)`, `completeTask(id, timestamp)`, `rescheduleTask(id, newDueAt)`, `deleteTask(id)`.
@@ -83,12 +86,13 @@
   - **RED:** Testes unitários com DAO mock/fake cobrindo cada método.
   - **GREEN:** Implementação de `TaskRepositoryImpl`.
   - **REFACTOR:** Tratamento de retorno em `Result<T>`.
-- **Definição de pronto:** `TaskRepositoryTest` passa com 100% de sucesso.
+- **Definição de pronto:** `TaskRepositoryImplTest` passa com 100% de sucesso.
 
 ---
 
 ### `TASK-04`: Implementar casos de uso: reagendamento e exclusão com suporte a desfazer
-- **Status:** `PENDING`
+- **Status:** `VERIFIED`
+- **Evidência:** `TaskUseCasesTest` passou para validação de reagendamento e expiração/uso do período de desfazer.
 - **Objetivo:** Isolar as regras de negócio de reagendar tarefa e gerenciar cache temporário de exclusão reversível.
 - **Referência à especificação:** Critérios `AC-06`, `AC-07`.
 - **Pré-requisitos e dependências:** `TASK-03`.
@@ -107,7 +111,8 @@
 ---
 
 ### `TASK-05`: Implementar `TasksViewModel` e gestão de estado `TasksUiState`
-- **Status:** `PENDING`
+- **Status:** `VERIFIED`
+- **Evidência:** `TasksViewModelTest` passou para classificação de atraso, conclusão, filtro de concluídas e evento/ação de desfazer.
 - **Objetivo:** Criar o ViewModel para a tela de tarefas com suporte a filtro de concluídas, estados de loading, lista de tarefas ativas destacando as atrasadas, e emissão de eventos para Snackbar de Undo.
 - **Referência à especificação:** Critérios `AC-03`, `AC-04`, `AC-05`, `AC-07`.
 - **Pré-requisitos e dependências:** `TASK-04`.
@@ -128,7 +133,8 @@
 ---
 
 ### `TASK-06`: Implementar `TasksScreen`, diálogos (criação, reagendamento, exclusão) e Snackbar com Undo
-- **Status:** `PENDING`
+- **Status:** `VERIFIED`
+- **Evidência:** `:app:assembleDebug` passou; instalação e abertura no emulador confirmaram a tela, estado vazio, diálogo e campos de prazo opcional.
 - **Objetivo:** Construir a interface Composable completa da tela de Tarefas, substituindo o placeholder da Fase 1.
 - **Referência à especificação:** Critérios `AC-01`, `AC-02`, `AC-03`, `AC-04`, `AC-05`, `AC-06`, `AC-07`.
 - **Pré-requisitos e dependências:** `TASK-05`.
@@ -149,7 +155,7 @@
 ---
 
 ### `TASK-07`: Verificação de ponta a ponta e testes de critérios de aceite
-- **Status:** `PENDING`
+- **Status:** `IN_PROGRESS`
 - **Objetivo:** Rodar todos os testes de tarefas e integração, garantindo `AC-01` a `AC-08`.
 - **Referência à especificação:** Critérios `AC-01` a `AC-08`.
 - **Pré-requisitos e dependências:** `TASK-06`.

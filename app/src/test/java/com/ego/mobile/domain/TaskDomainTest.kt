@@ -25,6 +25,25 @@ class TaskDomainTest {
     }
 
     @Test
+    fun titleAndDescriptionRespectTheirMaximumLengths() {
+        org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
+            Task(
+                title = "T".repeat(101),
+                createdAt = 1_000L,
+                updatedAt = 1_000L,
+            )
+        }
+        org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
+            Task(
+                title = "Válida",
+                description = "D".repeat(301),
+                createdAt = 1_000L,
+                updatedAt = 1_000L,
+            )
+        }
+    }
+
+    @Test
     fun overdueRulesMatchStatusAndDueDate() {
         val now = System.currentTimeMillis()
 
