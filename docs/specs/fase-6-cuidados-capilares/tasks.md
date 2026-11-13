@@ -10,7 +10,7 @@
 
 | ID | Tarefa | Status | Dependências |
 |---|---|---|---|
-| `TASK-01` | Implementar modelos de domínio (`HaircareRoutine`, `HaircareOccurrence`, `HaircareStepType`) e predefinições | `PENDING` | Nenhuma |
+| `TASK-01` | Implementar modelos de domínio (`HaircareRoutine`, `HaircareOccurrence`, `HaircareStepType`) e predefinições | `VERIFIED` | Nenhuma |
 | `TASK-02` | Implementar entidades Room, `HaircareDao` e registrar no `EgoDatabase` | `PENDING` | `TASK-01` |
 | `TASK-03` | Implementar `HaircareRepository` e casos de uso de execução e reagendamento | `PENDING` | `TASK-02` |
 | `TASK-04` | Implementar `HaircareViewModel` e gerenciar `HaircareUiState` | `PENDING` | `TASK-03` |
@@ -23,7 +23,8 @@
 ## Detalhamento das Tarefas
 
 ### `TASK-01`: Implementar modelos de domínio (`HaircareRoutine`, `HaircareOccurrence`, `HaircareStepType`) e predefinições
-- **Status:** `PENDING`
+- **Status:** `VERIFIED`
+- **Evidências:** Ciclo TDD estrito executado. 11 testes em `HaircareDomainTest` criados (RED com 9 falhas funcionais esperadas em validações, cálculos de data e preset → GREEN com implementação dos modelos puros e `HaircarePreset.standardSteps()`). 75 testes unitários executados com 100% de sucesso via Gradle.
 - **Objetivo:** Criar modelos Kotlin puros em `domain/model` e a predefinição editável "Cronograma Capilar Básico" (composto por etapas intercaladas de Hidratação, Nutrição e Reconstrução).
 - **Referência à especificação:** Critérios `AC-01`, `AC-02`.
 - **Pré-requisitos e dependências:** Nenhuma.
