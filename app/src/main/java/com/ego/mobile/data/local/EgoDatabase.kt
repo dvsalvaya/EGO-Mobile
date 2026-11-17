@@ -8,14 +8,18 @@ import com.ego.mobile.data.local.dao.HabitDao
 import com.ego.mobile.data.local.dao.HabitOccurrenceDao
 import com.ego.mobile.data.local.dao.HaircareDao
 import com.ego.mobile.data.local.dao.TaskDao
+import com.ego.mobile.data.local.dao.TrainingModelDao
+import com.ego.mobile.data.local.dao.TrainingModelExerciseDao
 import com.ego.mobile.data.local.dao.WorkoutDao
 import com.ego.mobile.data.local.entity.HabitEntity
 import com.ego.mobile.data.local.entity.HabitOccurrenceEntity
-import com.ego.mobile.data.local.entity.HaircareOccurrenceEntity
-import com.ego.mobile.data.local.entity.HaircareRoutineEntity
 import com.ego.mobile.data.local.entity.TaskEntity
 import com.ego.mobile.data.local.entity.WorkoutExerciseEntity
 import com.ego.mobile.data.local.entity.WorkoutSessionEntity
+import com.ego.mobile.data.local.entity.HaircareRoutineEntity
+import com.ego.mobile.data.local.entity.HaircareOccurrenceEntity
+import com.ego.mobile.data.local.entity.TrainingModelEntity
+import com.ego.mobile.data.local.entity.TrainingModelExerciseEntity
 
 val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
@@ -92,7 +96,7 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
             "CREATE TABLE IF NOT EXISTS `haircare_routines` (" +
                 "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
                 "`name` TEXT NOT NULL, `source` TEXT NOT NULL, `description` TEXT, " +
-                "`createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL)",
+                "`createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL)"
         )
         db.execSQL(
             "CREATE TABLE IF NOT EXISTS `haircare_occurrences` (" +
@@ -100,19 +104,19 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
                 "`stepType` TEXT NOT NULL, `stepTitle` TEXT NOT NULL, `scheduledDate` TEXT NOT NULL, " +
                 "`executedAt` INTEGER, `status` TEXT NOT NULL, `notes` TEXT, `orderIndex` INTEGER NOT NULL, " +
                 "FOREIGN KEY(`routineId`) REFERENCES `haircare_routines`(`id`) " +
-                "ON UPDATE NO ACTION ON DELETE CASCADE)",
+                "ON UPDATE NO ACTION ON DELETE CASCADE)"
         )
         db.execSQL(
             "CREATE INDEX IF NOT EXISTS `index_haircare_occurrences_routineId` " +
-                "ON `haircare_occurrences` (`routineId`)",
+                "ON `haircare_occurrences` (`routineId`)"
         )
         db.execSQL(
             "CREATE INDEX IF NOT EXISTS `index_haircare_occurrences_scheduledDate` " +
-                "ON `haircare_occurrences` (`scheduledDate`)",
+                "ON `haircare_occurrences` (`scheduledDate`)"
         )
         db.execSQL(
             "CREATE INDEX IF NOT EXISTS `index_haircare_occurrences_status` " +
-                "ON `haircare_occurrences` (`status`)",
+                "ON `haircare_occurrences` (`status`)"
         )
     }
 }
@@ -123,6 +127,37 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
         db.execSQL(
             "ALTER TABLE `workout_sessions` ADD COLUMN `pausedDurationMillis` " +
                 "INTEGER NOT NULL DEFAULT 0",
+        )
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `training_models` (" +
+                "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`name` TEXT NOT NULL, " +
+                "`createdAt` INTEGER NOT NULL, " +
+                "`updatedAt` INTEGER NOT NULL)"
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_training_models_name` ON `training_models` (`name`)"
+        )
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `training_models_exercises` (" +
+                "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`modelId` INTEGER NOT NULL, " +
+                "`name` TEXT NOT NULL, " +
+                "`orderIndex` INTEGER NOT NULL, " +
+                "`setsCount` INTEGER NOT NULL, " +
+                "`reps` TEXT, " +
+                "`weightKg` REAL, " +
+                "`notes` TEXT, " +
+                "FOREIGN KEY(`modelId`) REFERENCES `training_models`(`id`) " +
+                "ON UPDATE CASCADE ON DELETE CASCADE)"
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_training_models_exercises_modelId` " +
+                "ON `training_models_exercises` (`modelId`)"
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_training_models_exercises_modelId_orderIndex` " +
+                "ON `training_models_exercises` (`modelId`, `orderIndex`)"
         )
     }
 }
@@ -136,6 +171,8 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
         WorkoutExerciseEntity::class,
         HaircareRoutineEntity::class,
         HaircareOccurrenceEntity::class,
+        TrainingModelEntity::class,
+        TrainingModelExerciseEntity::class,
     ],
     version = 6,
     exportSchema = true,
@@ -146,4 +183,6 @@ abstract class EgoDatabase : RoomDatabase() {
     abstract fun taskDao(): TaskDao
     abstract fun workoutDao(): WorkoutDao
     abstract fun haircareDao(): HaircareDao
+    abstract fun trainingModelDao(): TrainingModelDao
+    abstract fun trainingModelExerciseDao(): TrainingModelExerciseDao
 }

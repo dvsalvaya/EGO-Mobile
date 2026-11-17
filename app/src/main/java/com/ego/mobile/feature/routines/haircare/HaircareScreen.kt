@@ -44,6 +44,7 @@ import com.ego.mobile.domain.model.HaircarePresetStep
 import com.ego.mobile.domain.model.HaircareStepType
 import com.ego.mobile.feature.routines.haircare.components.CurrentStepCard
 import com.ego.mobile.feature.routines.haircare.components.HaircareHistoryList
+import com.ego.mobile.feature.routines.haircare.components.HaircareCalendar
 import com.ego.mobile.feature.routines.haircare.components.RescheduleStepDialog
 import java.time.LocalDate
 import java.time.ZoneId
@@ -176,6 +177,7 @@ private fun ActiveRoutineScreen(
     onRecordExecution: (Long) -> Unit,
     onReschedule: (HaircareOccurrence) -> Unit,
 ) {
+    val routine = state.routine
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -185,17 +187,29 @@ private fun ActiveRoutineScreen(
         item {
             Column {
                 Text(
-                    text = state.routine.name,
+                    text = routine.name,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                 )
-                state.routine.description?.let { description ->
+                routine.description?.let { description ->
                     Text(
                         text = description,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                // Monthly calendar grid
+                HaircareCalendar(
+                    routine = routine,
+                    onStepClick = { occurrence ->
+                        // Show current step or open details
+                        if (occurrence.status == HaircareOccurrenceStatus.PENDENT ||
+                            occurrence.status == HaircareOccurrenceStatus.RESCHEDULED) {
+                            onReschedule(occurrence)
+                        }
+                    },
+                    onRecordExecution = onRecordExecution,
+                )
             }
         }
         item {
