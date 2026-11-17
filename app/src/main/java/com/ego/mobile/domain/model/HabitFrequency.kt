@@ -27,10 +27,9 @@ sealed class HabitFrequency {
             require(count in 1..7) { "Times per week must be between 1 and 7." }
         }
 
-        override fun requiresOccurrenceOn(date: LocalDate): Boolean {
-            val weekWindow = date.dayOfWeek.value
-            return weekWindow <= count
-        }
+        // Qualquer dia da semana é elegível; o limite semanal é avaliado por
+        // HabitProgressRules a partir das conclusões reais da semana ISO.
+        override fun requiresOccurrenceOn(date: LocalDate): Boolean = true
 
         override fun toPersistedValue(): String = "TIMES_PER_WEEK:$count"
     }

@@ -20,6 +20,9 @@ interface HabitOccurrenceDao {
     @Query("SELECT * FROM habit_occurrences WHERE habitId = :habitId AND dateCivil = :dateCivil LIMIT 1")
     suspend fun getByHabitAndDate(habitId: Long, dateCivil: String): HabitOccurrenceEntity?
 
+    @Query("DELETE FROM habit_occurrences WHERE habitId = :habitId AND dateCivil = :dateCivil")
+    suspend fun deleteByHabitAndDate(habitId: Long, dateCivil: String)
+
     @Query("SELECT * FROM habit_occurrences WHERE habitId = :habitId ORDER BY dateCivil DESC")
     fun observeByHabitId(habitId: Long): Flow<List<HabitOccurrenceEntity>>
 

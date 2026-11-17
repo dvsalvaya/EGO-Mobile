@@ -1,5 +1,8 @@
 package com.ego.mobile.domain.model
 
+import java.time.Instant
+import java.time.ZoneId
+
 data class Task(
     val id: Long = 0L,
     val title: String,
@@ -18,8 +21,17 @@ data class Task(
         }
     }
 
-    fun isOverdue(nowMillis: Long = System.currentTimeMillis()): Boolean {
+    /**
+     * Uma tarefa aberta só fica atrasada quando a data civil do prazo é anterior
+     * à data civil atual. Prazo para hoje não é atraso durante o dia de hoje.
+     */
+    fun isOverdue(
+        nowMillis: Long = System.currentTimeMillis(),
+        zoneId: ZoneId = ZoneId.of("America/Sao_Paulo"),
+    ): Boolean {
         if (status != TaskStatus.OPEN || dueAt == null) return false
-        return dueAt < nowMillis
+        val dueDate = Instant.ofEpochMilli(dueAt).atZone(zoneId).toLocalDate()
+        val today = Instant.ofEpochMilli(nowMillis).atZone(zoneId).toLocalDate()
+        return dueDate < today
     }
 }

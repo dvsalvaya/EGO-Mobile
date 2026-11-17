@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -79,6 +80,11 @@ class FakeHabitOccurrenceDao : HabitOccurrenceDao {
 
     override suspend fun getByHabitAndDate(habitId: Long, dateCivil: String): HabitOccurrenceEntity? {
         return items.values.firstOrNull { it.habitId == habitId && it.dateCivil == dateCivil }
+    }
+
+    override suspend fun deleteByHabitAndDate(habitId: Long, dateCivil: String) {
+        items.entries.removeIf { it.value.habitId == habitId && it.value.dateCivil == dateCivil }
+        emit()
     }
 
     override fun observeByHabitId(habitId: Long): Flow<List<HabitOccurrenceEntity>> {
@@ -196,6 +202,33 @@ class HabitRepositoryImplTest {
         val occurrence = repository.getOccurrenceForDate(habitId, "2026-10-28")
         assertEquals(HabitOccurrenceStatus.COMPLETED, occurrence?.status)
         assertEquals("Concluído", occurrence?.notes)
+    }
+
+    @Test
+    fun timesPerWeekAllowsAnyThreeDaysAndRejectsExtraCompletion() = runTest(testDispatcher) {
+        val habitId = repository.saveHabit(
+            Habit(
+                name = "Academia",
+                frequency = HabitFrequency.TimesPerWeek(3),
+                status = HabitStatus.ACTIVE,
+                createdAt = 1000L,
+                updatedAt = 1000L,
+            ),
+        )
+
+        listOf("2026-11-16", "2026-11-19", "2026-11-22").forEach { date ->
+            assertTrue(repository.completeOccurrence(habitId, date, null).isSuccess)
+        }
+        val rejected = repository.completeOccurrence(habitId, "2026-11-20", null)
+        assertTrue(rejected.isFailure)
+        assertNull(repository.getOccurrenceForDate(habitId, "2026-11-20"))
+
+        assertTrue(repository.revertOccurrence(habitId, "2026-11-19").isSuccess)
+        assertTrue(repository.completeOccurrence(habitId, "2026-11-20", null).isSuccess)
+
+        // Nova semana: a contagem recomeça sem apagar as ocorrências antigas.
+        assertTrue(repository.completeOccurrence(habitId, "2026-11-24", null).isSuccess)
+        assertEquals(4, fakeOccurrenceDao.getByHabitAndDateRange(habitId, "2026-11-16", "2026-11-29").size)
     }
 
     @Test

@@ -41,6 +41,9 @@ internal class FakeConsolidationHabitRepository : HabitRepository {
         return completionResult
     }
 
+    override suspend fun revertOccurrence(habitId: Long, dateCivil: String): Result<Unit> =
+        Result.success(Unit)
+
     override suspend fun pauseHabit(habitId: Long): Result<Unit> =
         Result.failure(UnsupportedOperationException())
 

@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.map
 
 class WorkoutRepositoryImpl(
     private val workoutDao: WorkoutDao,
+    private val clock: () -> Long = System::currentTimeMillis,
 ) : WorkoutRepository {
 
     override fun getActiveSession(): Flow<WorkoutSession?> {
@@ -56,7 +57,7 @@ class WorkoutRepositoryImpl(
         val sessionEntity = workoutDao.getSessionById(sessionId)
             ?: throw IllegalArgumentException("Workout session with id $sessionId not found")
         val domain = sessionEntity.toDomain()
-        val updated = domain.transitionTo(WorkoutSessionStatus.PAUSED)
+        val updated = domain.transitionTo(WorkoutSessionStatus.PAUSED, timestamp = clock())
         workoutDao.updateSession(updated.toEntity())
     }
 
@@ -64,7 +65,7 @@ class WorkoutRepositoryImpl(
         val sessionEntity = workoutDao.getSessionById(sessionId)
             ?: throw IllegalArgumentException("Workout session with id $sessionId not found")
         val domain = sessionEntity.toDomain()
-        val updated = domain.transitionTo(WorkoutSessionStatus.IN_PROGRESS)
+        val updated = domain.transitionTo(WorkoutSessionStatus.IN_PROGRESS, timestamp = clock())
         workoutDao.updateSession(updated.toEntity())
     }
 
@@ -80,7 +81,7 @@ class WorkoutRepositoryImpl(
         val sessionEntity = workoutDao.getSessionById(sessionId)
             ?: throw IllegalArgumentException("Workout session with id $sessionId not found")
         val domain = sessionEntity.toDomain()
-        val updated = domain.transitionTo(WorkoutSessionStatus.CANCELLED)
+        val updated = domain.transitionTo(WorkoutSessionStatus.CANCELLED, timestamp = clock())
         workoutDao.updateSession(updated.toEntity())
     }
 

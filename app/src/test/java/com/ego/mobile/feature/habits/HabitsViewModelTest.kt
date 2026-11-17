@@ -61,6 +61,8 @@ class FakeHabitRepository : HabitRepository {
         return Result.success(Unit)
     }
 
+    override suspend fun revertOccurrence(habitId: Long, dateCivil: String): Result<Unit> = Result.success(Unit)
+
     override suspend fun pauseHabit(habitId: Long): Result<Unit> {
         val habitsIndex = internalHabits.indexOfFirst { it.id == habitId }
         if (habitsIndex < 0) return Result.failure(IllegalArgumentException("Habit not found."))
@@ -128,6 +130,66 @@ class HabitsViewModelTest {
         assertEquals(1, state.activeHabits.size)
         assertEquals(1, state.pausedHabits.size)
         assertFalse(state.isEmpty)
+    }
+
+    @Test
+    fun `edit archive and frequency update preserve the habit history`() = runTest(dispatcher) {
+        val repository = FakeHabitRepository()
+        val viewModel = HabitsViewModel(repository, clock = { 5_000L })
+        val id = repository.saveHabit(
+            Habit(
+                name = "Leitura",
+                description = "Antes",
+                frequency = HabitFrequency.Daily,
+                status = HabitStatus.ACTIVE,
+                createdAt = 1_000L,
+                updatedAt = 1_000L,
+            ),
+        )
+        runCurrent()
+
+        viewModel.onEditHabit(id, "Leitura diária", "Depois")
+        runCurrent()
+        assertEquals("Leitura diária", repository.getHabitById(id)?.name)
+        assertEquals("Depois", repository.getHabitById(id)?.description)
+
+        viewModel.onUpdateFrequency(id, HabitFrequency.TimesPerWeek(3))
+        runCurrent()
+        assertEquals(HabitFrequency.TimesPerWeek(3), repository.getHabitById(id)?.frequency)
+
+        viewModel.onArchiveHabit(id)
+        runCurrent()
+        assertEquals(HabitStatus.ARCHIVED, repository.getHabitById(id)?.status)
+        assertTrue(viewModel.uiState.value.isEmpty)
+    }
+
+    @Test
+    fun `pause and undo completion are reachable and reported`() = runTest(dispatcher) {
+        val repository = FakeHabitRepository()
+        val viewModel = HabitsViewModel(repository)
+        val id = repository.saveHabit(
+            Habit(
+                name = "Caminhada",
+                frequency = HabitFrequency.Daily,
+                status = HabitStatus.ACTIVE,
+                createdAt = 1_000L,
+                updatedAt = 1_000L,
+            ),
+        )
+        runCurrent()
+
+        viewModel.onPauseHabit(id)
+        runCurrent()
+        assertEquals(1, viewModel.uiState.value.pausedHabits.size)
+        assertEquals("Hábito pausado.", viewModel.uiState.value.operationMessage)
+
+        viewModel.onResumeHabit(id)
+        runCurrent()
+        assertEquals(1, viewModel.uiState.value.activeHabits.size)
+
+        viewModel.onUndoCompletion(id)
+        runCurrent()
+        assertEquals("Conclusão desfeita.", viewModel.uiState.value.operationMessage)
     }
 
     @Test

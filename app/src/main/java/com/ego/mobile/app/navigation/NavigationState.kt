@@ -5,10 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.ego.mobile.domain.model.ActivityType
 
-class NavigationState(initialDestination: AppDestination = AppDestination.HOME) {
+class NavigationState(
+    initialDestination: AppDestination = AppDestination.HOME,
+    initialRoutinesTab: Int = 0,
+) {
     var currentDestination: AppDestination by mutableStateOf(initialDestination)
         private set
-    var routinesInitialTab: Int by mutableStateOf(0)
+    var routinesInitialTab: Int by mutableStateOf(initialRoutinesTab)
         private set
 
     fun navigateTo(destination: AppDestination) {
