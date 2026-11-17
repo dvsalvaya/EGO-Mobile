@@ -20,7 +20,7 @@ class TaskUseCasesTest {
         val now = System.currentTimeMillis()
         val task = Task(
             title = "Tarefa vencida",
-            dueAt = now - 30_000L,
+            dueAt = now - 86_400_000L,
             status = TaskStatus.OPEN,
             createdAt = now - 60_000L,
             updatedAt = now - 60_000L,

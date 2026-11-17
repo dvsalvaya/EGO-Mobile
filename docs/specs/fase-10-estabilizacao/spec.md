@@ -1,6 +1,6 @@
 # Spec 10 — Estabilização, Correção de Bugs e Integridade Funcional
 
-- **Status:** Draft para implementação
+- **Status:** `IN_PROGRESS` — implementação das Fases 1–5 autorizada explicitamente em 16/11/2026; verificação manual pendente (T10.21) e relatório em `reports/TASK-10-RELATORIO-FINAL.md`
 - **Base:** `FIX.md` — auditoria de QA das Specs 1–8, realizada entre 14/11/2026 e 16/11/2026
 - **Commit auditado:** `7aa20d4`
 - **Plataforma:** Android — Kotlin, Jetpack Compose, Room

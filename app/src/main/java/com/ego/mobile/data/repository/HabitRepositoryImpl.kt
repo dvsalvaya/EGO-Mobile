@@ -5,8 +5,10 @@ import com.ego.mobile.data.local.dao.HabitOccurrenceDao
 import com.ego.mobile.data.local.mapper.toDomain
 import com.ego.mobile.data.local.mapper.toEntity
 import com.ego.mobile.domain.model.Habit
+import com.ego.mobile.domain.model.HabitFrequency
 import com.ego.mobile.domain.model.HabitOccurrence
 import com.ego.mobile.domain.model.HabitOccurrenceStatus
+import com.ego.mobile.domain.model.HabitProgressRules
 import com.ego.mobile.domain.model.HabitStatus
 import com.ego.mobile.domain.repository.HabitRepository
 import kotlinx.coroutines.CoroutineDispatcher
@@ -54,7 +56,30 @@ class HabitRepositoryImpl(
         }
 
         val now = System.currentTimeMillis()
+        val habit = habitDao.getById(habitId)?.toDomain()
+            ?: return@withContext Result.failure(IllegalArgumentException("Hábito não encontrado."))
+        if (habit.status != HabitStatus.ACTIVE) {
+            return@withContext Result.failure(IllegalStateException("Hábito não está ativo."))
+        }
+
+        val date = runCatching { LocalDate.parse(dateCivil) }
+            .getOrElse { return@withContext Result.failure(IllegalArgumentException("Data inválida.")) }
         val existing = habitOccurrenceDao.getByHabitAndDate(habitId, dateCivil)
+        if (existing?.toDomain()?.status != HabitOccurrenceStatus.COMPLETED) {
+            val frequency = habit.frequency
+            if (frequency is HabitFrequency.TimesPerWeek) {
+                val (weekStart, weekEnd) = HabitProgressRules.weekBounds(date)
+                val completedInWeek = habitOccurrenceDao
+                    .getByHabitAndDateRange(habitId, weekStart.toString(), weekEnd.toString())
+                    .count { it.status == HabitOccurrenceStatus.COMPLETED.name }
+                if (completedInWeek >= frequency.count) {
+                    return@withContext Result.failure(
+                        IllegalStateException("Meta semanal já atingida para este hábito."),
+                    )
+                }
+            }
+        }
+
         val occurrence = (existing?.toDomain() ?: HabitOccurrence(
             habitId = habitId,
             date = LocalDate.parse(dateCivil),
@@ -74,6 +99,14 @@ class HabitRepositoryImpl(
             habitOccurrenceDao.update(occurrence.toEntity())
         }
 
+        Result.success(Unit)
+    }
+
+    override suspend fun revertOccurrence(habitId: Long, dateCivil: String): Result<Unit> = withContext(ioDispatcher) {
+        if (habitOccurrenceDao == null) {
+            return@withContext Result.failure(IllegalStateException("Habit occurrence DAO is not configured."))
+        }
+        habitOccurrenceDao.deleteByHabitAndDate(habitId, dateCivil)
         Result.success(Unit)
     }
 

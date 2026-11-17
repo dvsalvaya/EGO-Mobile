@@ -1,7 +1,9 @@
 package com.ego.mobile.domain.usecase
 
 import com.ego.mobile.domain.model.ActivityType
+import com.ego.mobile.domain.model.HabitFrequency
 import com.ego.mobile.domain.model.HomeSummary
+import com.ego.mobile.domain.model.HabitProgressRules
 import com.ego.mobile.domain.model.HaircareOccurrenceStatus
 import com.ego.mobile.domain.model.HabitOccurrenceStatus
 import com.ego.mobile.domain.model.HabitStatus
@@ -33,7 +35,14 @@ class GetHomeSummaryUseCase(
             snapshot.habits
                 .asSequence()
                 .filter { habit ->
-                    habit.status == HabitStatus.ACTIVE && habit.frequency.requiresOccurrenceOn(date)
+                    if (habit.status != HabitStatus.ACTIVE || !habit.frequency.requiresOccurrenceOn(date)) {
+                        false
+                    } else if (habit.frequency is HabitFrequency.TimesPerWeek) {
+                        val occurrences = snapshot.occurrencesByHabit[habit.id].orEmpty()
+                        HabitProgressRules.progressFor(habit, occurrences, date).canComplete
+                    } else {
+                        true
+                    }
                 }
                 .map { habit ->
                     val occurrence = snapshot.occurrencesByHabit[habit.id]

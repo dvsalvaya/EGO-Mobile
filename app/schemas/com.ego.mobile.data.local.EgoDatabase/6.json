@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 6,
-    "identityHash": "4b6375a0aa50abd1e590b52e3bc8dcaf",
+    "identityHash": "52bd11aeb49c4a22dc4c4cc7e41b4d1e",
     "entities": [
       {
         "tableName": "habits",
@@ -219,7 +219,7 @@
       },
       {
         "tableName": "workout_sessions",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `startedAt` INTEGER NOT NULL, `endedAt` INTEGER, `status` TEXT NOT NULL, `notes` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `startedAt` INTEGER NOT NULL, `endedAt` INTEGER, `status` TEXT NOT NULL, `notes` TEXT, `pausedAt` INTEGER, `pausedDurationMillis` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -254,6 +254,17 @@
             "fieldPath": "notes",
             "columnName": "notes",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "pausedAt",
+            "columnName": "pausedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "pausedDurationMillis",
+            "columnName": "pausedDurationMillis",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -668,7 +679,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4b6375a0aa50abd1e590b52e3bc8dcaf')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '52bd11aeb49c4a22dc4c4cc7e41b4d1e')"
     ]
   }
 }

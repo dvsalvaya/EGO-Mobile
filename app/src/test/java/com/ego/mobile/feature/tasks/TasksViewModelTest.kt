@@ -29,9 +29,9 @@ class TasksViewModelTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         var viewModelStore: ViewModelStore? = null
         try {
-            val now = 300_000L
+            val now = epoch(2026, 11, 16, 12, 0)
             val repository = FakeTaskRepository()
-            val overdueId = repository.createTask(task("Vencida", dueAt = now - 1L))
+            val overdueId = repository.createTask(task("Vencida", dueAt = epoch(2026, 11, 15, 0, 0)))
             val viewModel = TasksViewModel(repository, clock = { now })
             viewModelStore = ViewModelStore().apply { put("tasks", viewModel) }
             runCurrent()
@@ -59,9 +59,9 @@ class TasksViewModelTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         var viewModelStore: ViewModelStore? = null
         try {
-            val now = 100_000L
+            val now = epoch(2026, 11, 16, 12, 0)
             val repository = FakeTaskRepository()
-            val overdueId = repository.createTask(task("Vencida", dueAt = now - 1L))
+            val overdueId = repository.createTask(task("Vencida", dueAt = epoch(2026, 11, 15, 0, 0)))
             val noDueId = repository.createTask(task("Sem prazo"))
             val viewModel = TasksViewModel(repository, clock = { now })
             viewModelStore = ViewModelStore().apply { put("tasks", viewModel) }
@@ -90,7 +90,7 @@ class TasksViewModelTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         var viewModelStore: ViewModelStore? = null
         try {
-            val now = 200_000L
+            val now = epoch(2026, 11, 16, 12, 0)
             val repository = FakeTaskRepository()
             val taskId = repository.createTask(task("Restaurável"))
             val useCase = DeleteTaskWithUndoUseCase(repository, currentTimeMillis = { now })
@@ -113,6 +113,12 @@ class TasksViewModelTest {
             Dispatchers.resetMain()
         }
     }
+
+    private fun epoch(year: Int, month: Int, day: Int, hour: Int, minute: Int): Long =
+        java.time.ZonedDateTime.of(
+            java.time.LocalDateTime.of(year, month, day, hour, minute),
+            java.time.ZoneId.of("America/Sao_Paulo"),
+        ).toInstant().toEpochMilli()
 
     private fun task(title: String, dueAt: Long? = null) = Task(
         title = title,

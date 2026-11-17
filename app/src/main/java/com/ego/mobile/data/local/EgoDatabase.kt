@@ -123,6 +123,11 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
 
 val MIGRATION_5_6 = object : Migration(5, 6) {
     override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `workout_sessions` ADD COLUMN `pausedAt` INTEGER")
+        db.execSQL(
+            "ALTER TABLE `workout_sessions` ADD COLUMN `pausedDurationMillis` " +
+                "INTEGER NOT NULL DEFAULT 0",
+        )
         db.execSQL(
             "CREATE TABLE IF NOT EXISTS `training_models` (" +
                 "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +

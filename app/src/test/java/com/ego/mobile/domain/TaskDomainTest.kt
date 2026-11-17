@@ -45,16 +45,25 @@ class TaskDomainTest {
 
     @Test
     fun overdueRulesMatchStatusAndDueDate() {
-        val now = System.currentTimeMillis()
+        val now = epoch(2026, 11, 16, 12, 0)
+        val zone = java.time.ZoneId.of("America/Sao_Paulo")
 
         val overdueOpenTask = Task(
             title = "Enviar proposta",
-            dueAt = now - 10_000L,
+            dueAt = epoch(2026, 11, 15, 0, 0),
             status = TaskStatus.OPEN,
             createdAt = now - 50_000L,
             updatedAt = now - 50_000L,
         )
-        assertTrue(overdueOpenTask.isOverdue(now))
+        assertTrue(overdueOpenTask.isOverdue(now, zone))
+
+        val dueToday = overdueOpenTask.copy(dueAt = epoch(2026, 11, 16, 0, 0))
+        assertFalse(dueToday.isOverdue(now, zone))
+        assertFalse(dueToday.isOverdue(epoch(2026, 11, 16, 23, 59), zone))
+        assertTrue(dueToday.isOverdue(epoch(2026, 11, 17, 0, 1), zone))
+
+        val dueTomorrow = overdueOpenTask.copy(dueAt = epoch(2026, 11, 17, 0, 0))
+        assertFalse(dueTomorrow.isOverdue(now, zone))
 
         val noDueTask = Task(
             title = "Leitura leve",
@@ -63,13 +72,19 @@ class TaskDomainTest {
             createdAt = now - 50_000L,
             updatedAt = now - 50_000L,
         )
-        assertFalse(noDueTask.isOverdue(now))
+        assertFalse(noDueTask.isOverdue(now, zone))
 
         val completedTask = overdueOpenTask.copy(
             status = TaskStatus.COMPLETED,
             completedAt = now - 5_000L,
             updatedAt = now - 5_000L,
         )
-        assertFalse(completedTask.isOverdue(now))
+        assertFalse(completedTask.isOverdue(now, zone))
     }
+
+    private fun epoch(year: Int, month: Int, day: Int, hour: Int, minute: Int): Long =
+        java.time.ZonedDateTime.of(
+            java.time.LocalDateTime.of(year, month, day, hour, minute),
+            java.time.ZoneId.of("America/Sao_Paulo"),
+        ).toInstant().toEpochMilli()
 }

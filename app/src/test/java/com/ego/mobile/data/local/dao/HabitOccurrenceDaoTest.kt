@@ -30,6 +30,11 @@ class FakeHabitOccurrenceDao : HabitOccurrenceDao {
         return items.values.firstOrNull { it.habitId == habitId && it.dateCivil == dateCivil }
     }
 
+    override suspend fun deleteByHabitAndDate(habitId: Long, dateCivil: String) {
+        items.entries.removeIf { it.value.habitId == habitId && it.value.dateCivil == dateCivil }
+        state.value = items.values.sortedBy { it.dateCivil }
+    }
+
     override fun observeByHabitId(habitId: Long): Flow<List<HabitOccurrenceEntity>> {
         return state.map { list -> list.filter { it.habitId == habitId } }
     }

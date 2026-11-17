@@ -100,6 +100,39 @@ class WorkoutDomainTest {
     }
 
     @Test
+    fun `paused time is excluded from duration across multiple pause resume cycles`() {
+        val started = WorkoutSession(title = "Treino", startedAt = 1_000L)
+
+        val paused = started.transitionTo(WorkoutSessionStatus.PAUSED, timestamp = 3_000L)
+        assertEquals(2_000L, paused.durationMillis(now = 30_000L))
+
+        val resumed = paused.transitionTo(WorkoutSessionStatus.IN_PROGRESS, timestamp = 8_000L)
+        assertEquals(5_000L, resumed.pausedDurationMillis)
+        assertEquals(6_000L, resumed.durationMillis(now = 12_000L))
+
+        val pausedAgain = resumed.transitionTo(WorkoutSessionStatus.PAUSED, timestamp = 14_000L)
+        assertEquals(8_000L, pausedAgain.durationMillis(now = 40_000L))
+
+        val resumedAgain = pausedAgain.transitionTo(WorkoutSessionStatus.IN_PROGRESS, timestamp = 18_000L)
+        assertEquals(9_000L, resumedAgain.pausedDurationMillis)
+        assertEquals(12_000L, resumedAgain.durationMillis(now = 22_000L))
+
+        val completed = resumedAgain.transitionTo(WorkoutSessionStatus.COMPLETED, timestamp = 25_000L)
+        assertEquals(15_000L, completed.durationMillis())
+    }
+
+    @Test
+    fun `completing while paused excludes the open pause interval`() {
+        val paused = WorkoutSession(title = "Treino", startedAt = 1_000L)
+            .transitionTo(WorkoutSessionStatus.PAUSED, timestamp = 4_000L)
+
+        val completed = paused.transitionTo(WorkoutSessionStatus.COMPLETED, timestamp = 10_000L)
+
+        assertEquals(6_000L, completed.pausedDurationMillis)
+        assertEquals(3_000L, completed.durationMillis())
+    }
+
+    @Test
     fun `exercise validation requires non blank name and max 80 chars`() {
         val blankEx = assertThrows(IllegalArgumentException::class.java) {
             WorkoutExercise(
