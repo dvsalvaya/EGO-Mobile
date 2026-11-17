@@ -10,6 +10,7 @@ import com.ego.mobile.data.repository.WorkoutRepositoryImpl
 import com.ego.mobile.domain.model.WorkoutExercise
 import com.ego.mobile.domain.model.WorkoutSession
 import com.ego.mobile.domain.repository.WorkoutRepository
+import com.ego.mobile.domain.usecase.GetWorkoutStatisticsUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +29,7 @@ import kotlinx.coroutines.launch
 class WorkoutViewModel(
     private val repository: WorkoutRepository,
     private val clock: () -> Long = System::currentTimeMillis,
+    private val statisticsUseCase: GetWorkoutStatisticsUseCase = GetWorkoutStatisticsUseCase(repository),
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(WorkoutUiState(isLoading = true))
@@ -46,6 +48,7 @@ class WorkoutViewModel(
             _uiState.value.copy(
                 activeSession = active,
                 completedSessions = completed,
+                stats = statisticsUseCase.fromSessions(completed),
                 elapsedTimeMillis = elapsed,
                 isLoading = false,
             )
