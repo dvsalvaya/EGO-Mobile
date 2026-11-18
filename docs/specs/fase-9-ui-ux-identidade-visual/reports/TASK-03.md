@@ -1,7 +1,7 @@
 # Relatório — Fase 9 / TASK-03
 
 - **Tarefa:** Padronizar componentes comuns de seção e estado vazio
-- **Status:** `IMPLEMENTADO`
+- **Status:** `VERIFIED`
 - **Nota de escopo:** implementação feita sob autorização direta do solicitante/coordenador. Não altera o status `DRAFT` da especificação nem a decisão pendente do plano técnico.
 
 ## Implementação
@@ -14,9 +14,9 @@
 ## Validação
 
 - **RED:** `connectedDebugAndroidTest` executado antes da implementação; os testes novos de `EmptyState` e `SectionHeader` falharam pelas mensagens/subtítulo ausentes. O processo também registrou uma falha intermitente do teste preexistente `haircareScreenCanShowTheSameOperationErrorAgain` e terminou com falha do processo de instrumentação.
-- **GREEN parcial:** após a implementação, a classe `EmptyStateScreensTest` executou 13 testes; 12 passaram e um falhou apenas porque a asserção esperava a frase antiga do vazio de histórico de treinos. O texto e a ação foram ajustados para preservar a frase/ação existentes. O teste não foi repetido porque o coordenador reservou `emulator-5554` para TASK-13.
+- **GREEN:** após diferenciar o rótulo da ação vazia de Treinos e tornar explícito no teste o ciclo limpar/mostrar novamente do erro capilar, `connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.ego.mobile.feature.EmptyStateScreensTest` passou com 13/13 testes no `Medium_Phone_API_37.0(AVD) - 17` (`emulator-5554`).
 - `testDebugUnitTest assembleDebug`: `BUILD SUCCESSFUL` após as alterações finais.
 
 ## Pendência
 
-Repetir `connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.ego.mobile.feature.EmptyStateScreensTest` quando o emulador for liberado. Por isso, este relatório não declara a tarefa verificada.
+Nenhuma pendência de implementação ou validação para TASK-03. O status geral da especificação e a decisão do plano técnico permanecem inalterados.

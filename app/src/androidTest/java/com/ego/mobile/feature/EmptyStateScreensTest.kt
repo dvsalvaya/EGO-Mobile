@@ -229,7 +229,8 @@ class EmptyStateScreensTest {
         composeRule.waitUntil(5_000) {
             composeRule.onAllNodesWithText("Haircare occurrence not found.").fetchSemanticsNodes().isNotEmpty()
         }
-        composeRule.waitUntil(7_000) {
+        composeRule.runOnIdle { viewModel.clearError() }
+        composeRule.waitUntil(5_000) {
             composeRule.onAllNodesWithText("Haircare occurrence not found.").fetchSemanticsNodes().isEmpty()
         }
 
