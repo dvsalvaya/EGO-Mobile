@@ -24,7 +24,7 @@ Esta decomposição não autoriza implementação enquanto os portões da `docs/
 | `TASK-10` | Atualizar tela Treinos com modelos, estatísticas e sessão atual | `PENDING` | `TASK-02`, `TASK-03`, `TASK-08`, `TASK-09` |
 | `TASK-11` | Adicionar calendário mensal à tela Cabelo | `PENDING` | `TASK-02`, `TASK-03` |
 | `TASK-12` | Verificar a integração da fase completa | `PENDING` | `TASK-07`, `TASK-10`, `TASK-11`, `TASK-14` |
-| `TASK-13` | Fechar períodos, preservar previsões e corrigir histórico de hábitos | `IN_PROGRESS` | Base de hábitos da Spec 10 |
+| `TASK-13` | Fechar períodos, preservar previsões e corrigir histórico de hábitos | `VERIFIED` | Base de hábitos da Spec 10 |
 | `TASK-14` | Validar a V1 em Início, Hábitos e Histórico | `PENDING` | `TASK-05`, `TASK-06`, `TASK-13`, RF-06 da Spec 10 |
 
 ## Detalhamento
