@@ -3,6 +3,7 @@
 - **Tarefa:** Atualizar navegação principal e acesso ao Histórico interno
 - **Status de execução:** `IMPLEMENTADO`
 - **Status formal da especificação/plano/tarefa:** preservado; nenhum status documental foi avançado.
+- **SHA local da implementação:** `f2cfb53` (`Implement Spec 9 navigation and internal history`).
 
 ## Escopo entregue
 
