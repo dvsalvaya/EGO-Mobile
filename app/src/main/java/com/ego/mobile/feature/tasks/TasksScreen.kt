@@ -35,6 +35,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.ego.mobile.domain.model.Task
+import com.ego.mobile.feature.common.EmptyState
 import com.ego.mobile.feature.tasks.components.DeleteConfirmDialog
 import com.ego.mobile.feature.tasks.components.RescheduleDialog
 import com.ego.mobile.feature.tasks.components.TaskFormDialog
@@ -142,40 +143,18 @@ fun TasksScreen(
                         }
                     }
 
-                    uiState.visibleTasks.isEmpty() -> Column(
+                    uiState.visibleTasks.isEmpty() -> EmptyState(
+                        title = if (uiState.showCompletedTasks) "Nenhuma tarefa concluída" else "Nenhuma tarefa aberta",
+                        message = if (uiState.showCompletedTasks) "As tarefas concluídas aparecerão aqui."
+                        else "Crie uma tarefa para organizar seu dia. O prazo é opcional.",
                         modifier = Modifier.fillMaxSize().padding(24.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Text(
-                            text = if (uiState.showCompletedTasks) {
-                                "Nenhuma tarefa concluída"
-                            } else {
-                                "Nenhuma tarefa aberta"
-                            },
-                            style = MaterialTheme.typography.headlineSmall,
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = if (uiState.showCompletedTasks) {
-                                "As tarefas concluídas aparecerão aqui."
-                            } else {
-                                "Crie uma tarefa para organizar seu dia. O prazo é opcional."
-                            },
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        if (!uiState.showCompletedTasks) {
-                            Spacer(Modifier.height(16.dp))
-                            Button(
-                                onClick = {
-                                    editingTask = null
-                                    showForm = true
-                                },
-                            ) {
-                                Text("Adicionar tarefa")
-                            }
-                        }
-                    }
+                        actionLabel = if (uiState.showCompletedTasks) "Exibir tarefas abertas" else "Adicionar tarefa",
+                        onActionClick = if (uiState.showCompletedTasks) {
+                            { viewModel.setShowCompletedTasks(false) }
+                        } else {
+                            { editingTask = null; showForm = true }
+                        },
+                    )
 
                     else -> LazyColumn(
                         modifier = Modifier.fillMaxSize(),

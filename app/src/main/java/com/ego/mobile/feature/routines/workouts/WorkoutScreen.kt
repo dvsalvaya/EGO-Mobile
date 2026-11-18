@@ -221,6 +221,9 @@ fun WorkoutScreen(
                         item {
                             WorkoutHistoryView(
                                 completedSessions = uiState.completedSessions,
+                                onStartWorkout = {
+                                    if (activeSession != null) viewingActiveWorkout = true else showStartDialog = true
+                                },
                                 modifier = Modifier.fillMaxWidth(),
                             )
                         }

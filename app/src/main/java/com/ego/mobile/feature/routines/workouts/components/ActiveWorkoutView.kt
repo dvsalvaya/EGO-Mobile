@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ego.mobile.feature.common.EmptyState
 import com.ego.mobile.domain.model.WorkoutExercise
 import com.ego.mobile.domain.model.WorkoutSession
 import com.ego.mobile.domain.model.WorkoutSessionStatus
@@ -163,18 +164,14 @@ fun ActiveWorkoutView(
         Spacer(modifier = Modifier.height(8.dp))
 
         if (session.exercises.isEmpty()) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-            ) {
-                Text(
-                    text = "Nenhum exercício registrado ainda. Toque em '+ Adicionar' para registrar suas séries e cargas.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(16.dp),
-                )
-            }
+            EmptyState(
+                title = "Nenhum exercício registrado",
+                message = "Adicione um exercício para registrar suas séries e cargas.",
+                modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                actionLabel = "Adicionar exercício",
+                onActionClick = onAddExerciseClick,
+                isCard = true,
+            )
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),

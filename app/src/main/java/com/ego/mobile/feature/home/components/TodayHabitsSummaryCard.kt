@@ -17,6 +17,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ego.mobile.domain.model.HabitOccurrenceStatus
 import com.ego.mobile.domain.model.HomeSummary
+import com.ego.mobile.feature.common.EmptyState
+import com.ego.mobile.feature.common.SectionHeader
 
 @Composable
 fun TodayHabitsSummaryCard(
@@ -30,11 +32,13 @@ fun TodayHabitsSummaryCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Hábitos de hoje", style = MaterialTheme.typography.titleLarge)
+            SectionHeader(title = "Hábitos de hoje")
             if (habits.isEmpty()) {
-                Text(
-                    "Nenhum hábito previsto para hoje.",
-                    style = MaterialTheme.typography.bodyMedium,
+                EmptyState(
+                    title = "Nenhum hábito previsto para hoje",
+                    message = "Seus hábitos agendados para hoje aparecerão aqui.",
+                    modifier = Modifier.fillMaxWidth(),
+                    iconContentDescription = null,
                 )
             } else {
                 habits.forEach { habit ->
