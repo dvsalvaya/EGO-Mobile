@@ -17,7 +17,7 @@ Esta decomposição não autoriza implementação enquanto os portões da `docs/
 | `TASK-03` | Padronizar componentes comuns de seção e estado vazio | `VERIFIED` | `TASK-01` |
 | `TASK-04` | Calcular grade de hábitos previstos em sete dias | `VERIFIED` | `TASK-13` |
 | `TASK-05` | Atualizar Home com indicadores e listas acionáveis do dia | `PENDING` | `TASK-02`, `TASK-03`, `TASK-04` |
-| `TASK-06` | Atualizar Hábitos com metas, dias preferidos e ações | `PENDING` | `TASK-01`, `TASK-03`, `TASK-13` |
+| `TASK-06` | Atualizar Hábitos com metas, dias preferidos e ações | `VERIFIED` | `TASK-01`, `TASK-03`, `TASK-13` |
 | `TASK-07` | Agrupar Tarefas por prazo e integrar o painel de detalhes | `PENDING` | `TASK-01`, `TASK-03`, RF-06 da Spec 10 |
 | `TASK-08` | Persistir modelos locais de treino com migration Room | `IN_PROGRESS` | Nenhuma |
 | `TASK-09` | Calcular estatísticas e evolução de carga por exercício | `IN_PROGRESS` | Nenhuma |

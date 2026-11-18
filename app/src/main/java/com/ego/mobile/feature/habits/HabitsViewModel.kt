@@ -68,8 +68,12 @@ class HabitsViewModel(
     }
 
     fun onQuickComplete(habitId: Long) {
+        onCompleteAt(habitId, today())
+    }
+
+    fun onCompleteAt(habitId: Long, date: LocalDate) {
         viewModelScope.launch {
-            val result = repository.completeOccurrence(habitId, today().toString(), null)
+            val result = repository.completeOccurrence(habitId, date.toString(), null)
             if (result.isFailure) {
                 _uiState.value = _uiState.value.copy(
                     errorMessage = result.exceptionOrNull()?.message ?: "Não foi possível concluir o hábito.",
@@ -88,13 +92,19 @@ class HabitsViewModel(
         }
     }
 
-    fun onUpdateHabitDetails(habitId: Long, name: String, description: String?) {
+    fun onUpdateHabitDetails(habitId: Long, name: String, description: String?, frequency: HabitFrequency? = null) {
         viewModelScope.launch {
             val existing = repository.getHabitById(habitId) ?: return@launch
+            val effectiveFrequency = frequency ?: existing.frequency
+            val updatedFrequency = if (effectiveFrequency != existing.frequency) {
+                val occurrences = repository.observeOccurrencesForHabit(habitId).first()
+                updateHabitFrequencyUseCase.invoke(existing, effectiveFrequency, today(), occurrences).habit.frequency
+            } else existing.frequency
             runCatching {
                 existing.copy(
                     name = name.trim(),
                     description = description?.trim()?.takeIf(String::isNotEmpty),
+                    frequency = updatedFrequency,
                     updatedAt = System.currentTimeMillis(),
                 )
             }.onSuccess { updated ->
