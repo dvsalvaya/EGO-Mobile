@@ -19,6 +19,7 @@ import com.ego.mobile.domain.model.Task
 import com.ego.mobile.domain.repository.HabitRepository
 import com.ego.mobile.domain.repository.TaskRepository
 import com.ego.mobile.domain.usecase.GetHomeSummaryUseCase
+import com.ego.mobile.domain.usecase.GetHabitDayGridUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +38,7 @@ class HomeViewModel(
     private val getHomeSummaryUseCase: GetHomeSummaryUseCase,
     private val habitRepository: HabitRepository,
     private val taskRepository: TaskRepository,
+    private val getHabitDayGridUseCase: GetHabitDayGridUseCase,
     private val clock: () -> Long = System::currentTimeMillis,
     private val today: () -> LocalDate = { LocalDate.now(ZoneId.of("America/Sao_Paulo")) },
 ) : ViewModel() {
@@ -47,9 +49,9 @@ class HomeViewModel(
     val events: Flow<HomeEvent> = eventChannel.receiveAsFlow()
 
     init {
-        getHomeSummaryUseCase()
+        kotlinx.coroutines.flow.combine(getHomeSummaryUseCase(), getHabitDayGridUseCase()) { summary, grid -> summary to grid }
             .onStart { _uiState.value = HomeUiState.Loading }
-            .onEach { summary -> _uiState.value = HomeUiState.Content(summary) }
+            .onEach { (summary, grid) -> _uiState.value = HomeUiState.Content(summary, grid) }
             .catch { error ->
                 _uiState.value = HomeUiState.Error(
                     error.message ?: "Não foi possível carregar o resumo.",
@@ -62,6 +64,7 @@ class HomeViewModel(
         viewModelScope.launch {
             try {
                 habitRepository.completeOccurrence(habitId, today().toString())
+                    .onSuccess { eventChannel.send(HomeEvent.HabitCompleted(habitId)) }
                     .onFailure { error ->
                         setError(error.message ?: "Não foi possível concluir o hábito.")
                     }
@@ -166,6 +169,7 @@ class HomeViewModel(
 sealed interface HomeEvent {
     data object OpenHabitCreation : HomeEvent
     data object OpenTaskCreation : HomeEvent
+    data class HabitCompleted(val habitId: Long) : HomeEvent
 }
 
 @Composable
@@ -187,6 +191,7 @@ fun rememberHomeViewModel(): HomeViewModel {
                 workoutRepository = workoutRepository,
                 haircareRepository = haircareRepository,
             ),
+            getHabitDayGridUseCase = GetHabitDayGridUseCase(habitRepository),
             habitRepository = habitRepository,
             taskRepository = taskRepository,
         )

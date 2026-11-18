@@ -33,7 +33,7 @@ class HomeSummaryUseCaseTest {
     private val today = LocalDate.of(2026, 11, 13)
 
     @Test
-    fun `includes active habits scheduled today with current occurrence status`() = runTest {
+    fun `includes only active habits still eligible for today`() = runTest {
         val habits = FakeConsolidationHabitRepository()
         val useCase = createUseCase(habits = habits)
         val daily = habit(id = 1L, name = "Ler")
@@ -55,11 +55,8 @@ class HomeSummaryUseCaseTest {
 
         val summary = useCase().first()
 
-        assertEquals(listOf(1L, 2L), summary.todayHabits.map { it.habitId })
-        assertEquals(
-            listOf(HabitOccurrenceStatus.COMPLETED, HabitOccurrenceStatus.PENDING),
-            summary.todayHabits.map { it.status },
-        )
+        assertEquals(listOf(2L), summary.todayHabits.map { it.habitId })
+        assertEquals(listOf(HabitOccurrenceStatus.PENDING), summary.todayHabits.map { it.status })
     }
 
     @Test
@@ -84,9 +81,8 @@ class HomeSummaryUseCaseTest {
                 occurrence(102L, weekly.id, today.minusDays(1), HabitOccurrenceStatus.COMPLETED),
             ),
         )
-        val complete = createUseCase(habits = habits).invoke().first().todayHabits.single()
-        assertEquals(2, complete.completedThisWeek)
-        assertTrue(!complete.canComplete)
+        val complete = createUseCase(habits = habits).invoke().first().todayHabits
+        assertTrue(complete.isEmpty())
     }
 
     @Test
@@ -114,8 +110,8 @@ class HomeSummaryUseCaseTest {
             startedAt = 1L,
             status = WorkoutSessionStatus.PAUSED,
         )
-        val later = task(id = 2L, title = "Prazo futuro", dueAt = 300L)
-        val sooner = task(id = 1L, title = "Prazo próximo", dueAt = 200L)
+        val later = task(id = 2L, title = "Prazo futuro", dueAt = today.plusDays(1).atStartOfDay(java.time.ZoneId.of("America/Sao_Paulo")).toInstant().toEpochMilli())
+        val sooner = task(id = 1L, title = "Prazo próximo", dueAt = today.atStartOfDay(java.time.ZoneId.of("America/Sao_Paulo")).toInstant().toEpochMilli())
         val undated = task(id = 3L, title = "Sem prazo", dueAt = null)
         tasks.openTasks.value = listOf(undated, later, sooner)
 
@@ -125,9 +121,35 @@ class HomeSummaryUseCaseTest {
             haircare = haircare,
         ).invoke().first()
 
-        assertEquals(listOf(1L, 2L, 3L), summary.priorityTasks.map { it.id })
+        assertEquals(listOf(1L), summary.priorityTasks.map { it.id })
         assertEquals(ActivityType.WORKOUT, summary.activeRoutine?.type)
         assertEquals("Treino A", summary.activeRoutine?.title)
+        assertEquals(ActivityType.WORKOUT, summary.activeWorkout?.type)
+        assertEquals(ActivityType.HAIRCARE, summary.haircareRoutine?.type)
+    }
+
+    @Test
+    fun `home limits today items while keeping totals and prioritizes civil due dates`() = runTest {
+        val tasks = FakeConsolidationTaskRepository()
+        val habits = FakeConsolidationHabitRepository()
+        val dateToday = today.atStartOfDay(java.time.ZoneId.of("America/Sao_Paulo")).toInstant().toEpochMilli()
+        val yesterday = today.minusDays(1).atStartOfDay(java.time.ZoneId.of("America/Sao_Paulo")).toInstant().toEpochMilli()
+        val tomorrow = today.plusDays(1).atStartOfDay(java.time.ZoneId.of("America/Sao_Paulo")).toInstant().toEpochMilli()
+        tasks.openTasks.value = listOf(
+            task(1L, "Hoje", dateToday), task(2L, "Amanhã", tomorrow),
+            task(3L, "Ontem", yesterday), task(4L, "Sem prazo", null),
+            task(5L, "Ontem 2", yesterday + 1_000),
+        )
+        habits.habits.value = (1L..5L).map { id ->
+            habit(id, "Hábito $id", if (id == 5L) HabitFrequency.TimesPerWeek(2) else HabitFrequency.Daily)
+        }
+
+        val summary = createUseCase(habits = habits, tasks = tasks).invoke().first()
+
+        assertEquals(5, summary.todayHabitsTotal)
+        assertEquals(listOf(1L, 2L, 3L), summary.todayHabits.map { it.habitId })
+        assertEquals(3, summary.priorityTasksTotal)
+        assertEquals(listOf("Ontem", "Ontem 2", "Hoje"), summary.priorityTasks.map { it.title })
     }
 
     @Test

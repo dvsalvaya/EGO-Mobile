@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +26,9 @@ fun TodayHabitsSummaryCard(
     habits: List<HomeSummary.TodayHabit>,
     onComplete: (Long) -> Unit,
     onUndo: (Long) -> Unit = {},
+    totalCount: Int = habits.size,
+    onOpenAll: () -> Unit = {},
+    onHabitSelected: (HomeSummary.TodayHabit) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Card(modifier = modifier.fillMaxWidth()) {
@@ -32,18 +36,21 @@ fun TodayHabitsSummaryCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            SectionHeader(title = "Hábitos de hoje")
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                SectionHeader(title = "Para hoje · Hábitos ($totalCount)")
+                androidx.compose.material3.TextButton(onClick = onOpenAll) { Text("Ver tudo") }
+            }
             if (habits.isEmpty()) {
                 EmptyState(
-                    title = "Nenhum hábito previsto para hoje",
-                    message = "Seus hábitos agendados para hoje aparecerão aqui.",
+                    title = "Tudo em dia",
+                    message = "Quando houver hábitos previstos para hoje, eles aparecerão aqui.",
                     modifier = Modifier.fillMaxWidth(),
                     iconContentDescription = null,
                 )
             } else {
                 habits.forEach { habit ->
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().clickable { onHabitSelected(habit) },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {

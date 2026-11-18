@@ -9,6 +9,7 @@ import com.ego.mobile.domain.usecase.FakeConsolidationHabitRepository
 import com.ego.mobile.domain.usecase.FakeConsolidationTaskRepository
 import com.ego.mobile.domain.usecase.FakeConsolidationWorkoutRepository
 import com.ego.mobile.domain.usecase.GetHomeSummaryUseCase
+import com.ego.mobile.domain.usecase.GetHabitDayGridUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.take
@@ -77,6 +78,7 @@ class HomeViewModelTest {
 
         assertEquals(listOf(7L to today.toString()), habits.completionCalls.map { it.habitId to it.dateCivil })
         assertEquals(listOf(12L to 9_000L), tasks.completionCalls.map { it.taskId to it.completedAt })
+        assertEquals(listOf(HomeEvent.HabitCompleted(7L)), viewModel.events.take(1).toList())
     }
 
     @Test
@@ -124,6 +126,7 @@ class HomeViewModelTest {
             Task(
                 id = 3L,
                 title = "Revisar documento",
+                dueAt = today.atStartOfDay(java.time.ZoneId.of("America/Sao_Paulo")).toInstant().toEpochMilli(),
                 createdAt = 1L,
                 updatedAt = 1L,
             ),
@@ -144,6 +147,7 @@ class HomeViewModelTest {
         ),
         habitRepository = habits,
         taskRepository = tasks,
+        getHabitDayGridUseCase = GetHabitDayGridUseCase(habits, today = { today }),
         clock = { 9_000L },
         today = { today },
     ).also { viewModelStore.put("home", it) }

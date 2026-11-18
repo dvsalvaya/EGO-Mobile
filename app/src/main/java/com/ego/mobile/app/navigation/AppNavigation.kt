@@ -12,6 +12,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -29,6 +30,7 @@ fun AppNavigation(
 ) {
     val destination = navigationState.currentDestination
     val isHistoryOpen = navigationState.isHistoryOpen
+    val saveableStateHolder = rememberSaveableStateHolder()
 
     BackHandler(enabled = isHistoryOpen || destination != AppDestination.HOME) {
         navigationState.handleBack()
@@ -50,6 +52,8 @@ fun AppNavigation(
                         onOpenHistory = {
                             navigationState.openHistory()
                         },
+                        onOpenHabits = { navigationState.navigateTo(AppDestination.HABITS) },
+                        onOpenTasks = { navigationState.navigateTo(AppDestination.TASKS) },
                     )
                 }
             }
@@ -93,7 +97,9 @@ fun AppNavigation(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            screenContent()
+            saveableStateHolder.SaveableStateProvider(if (isHistoryOpen) "history" else destination.name) {
+                screenContent()
+            }
         }
     }
 }

@@ -18,6 +18,7 @@ import com.ego.mobile.domain.model.Task
 import com.ego.mobile.domain.model.TaskStatus
 import com.ego.mobile.domain.usecase.GetConsolidatedHistoryUseCase
 import com.ego.mobile.domain.usecase.GetHomeSummaryUseCase
+import com.ego.mobile.domain.usecase.GetHabitDayGridUseCase
 import com.ego.mobile.feature.habits.HabitsViewModel
 import com.ego.mobile.feature.history.HistoryViewModel
 import com.ego.mobile.feature.home.HomeUiState
@@ -93,6 +94,7 @@ class HomeHistoryConsistencyTest {
             ),
             habitRepository = habitRepository,
             taskRepository = taskRepository,
+            getHabitDayGridUseCase = GetHabitDayGridUseCase(habitRepository, today = { today }),
             clock = { now + 1_000L },
             today = { today },
         ).also { viewModelStore.put("home", it) }

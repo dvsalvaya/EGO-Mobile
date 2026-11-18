@@ -3,9 +3,12 @@ package com.ego.mobile.feature.home
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.room.Room
@@ -17,6 +20,7 @@ import com.ego.mobile.data.repository.HaircareRepositoryImpl
 import com.ego.mobile.data.repository.TaskRepositoryImpl
 import com.ego.mobile.data.repository.WorkoutRepositoryImpl
 import com.ego.mobile.domain.usecase.GetHomeSummaryUseCase
+import com.ego.mobile.domain.usecase.GetHabitDayGridUseCase
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertTrue
@@ -54,6 +58,7 @@ class HomeScreenTest {
             ),
             habitRepository = habitRepository,
             taskRepository = taskRepository,
+            getHabitDayGridUseCase = GetHabitDayGridUseCase(habitRepository, today = { LocalDate.of(2026, 11, 13) }),
             clock = { 1_000L },
             today = { LocalDate.of(2026, 11, 13) },
         )
@@ -75,12 +80,9 @@ class HomeScreenTest {
         composeRule.waitUntil(5_000) {
             viewModel.uiState.value is HomeUiState.Content
         }
-        composeRule.onNodeWithText("Novo hábito").assertIsDisplayed()
-        composeRule.onNodeWithText("Nova tarefa").assertIsDisplayed()
-        composeRule.onNodeWithText("Hábitos de hoje").assertIsDisplayed()
-        composeRule.onNodeWithText("Nenhum hábito previsto para hoje.").assertIsDisplayed()
-        composeRule.onNodeWithText("Tarefas prioritárias").assertIsDisplayed()
-        composeRule.onNodeWithText("Nenhuma tarefa em aberto.").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Criar").assertIsDisplayed()
+        composeRule.onNodeWithText("Consistência dos hábitos").assertIsDisplayed()
+        composeRule.onAllNodesWithText("Tudo em dia").assertCountEquals(2)
     }
 
     @Test
@@ -94,10 +96,10 @@ class HomeScreenTest {
             viewModel.uiState.value is HomeUiState.Content
         }
 
-        composeRule.onNodeWithText("Novo hábito").performClick()
+        openCreate("Novo hábito")
         composeRule.onNodeWithText("Frequência").assertIsDisplayed()
         composeRule.onNodeWithText("Cancelar").performClick()
-        composeRule.onNodeWithText("Nova tarefa").performClick()
+        openCreate("Nova tarefa")
         composeRule.onNodeWithText("Título").assertIsDisplayed()
     }
 
@@ -112,7 +114,7 @@ class HomeScreenTest {
             viewModel.uiState.value is HomeUiState.Content
         }
 
-        composeRule.onNodeWithText("Novo hábito").performClick()
+        openCreate("Novo hábito")
         composeRule.onNodeWithText("Nome").performTextInput("Meditar")
         composeRule.onNodeWithText("Salvar").performClick()
         composeRule.waitUntil(5_000) {
@@ -129,7 +131,7 @@ class HomeScreenTest {
                 ?.status == com.ego.mobile.domain.model.HabitOccurrenceStatus.COMPLETED
         }
 
-        composeRule.onNodeWithText("Nova tarefa").performClick()
+        openCreate("Nova tarefa")
         composeRule.onNodeWithText("Título").performTextInput("Revisar proposta")
         composeRule.onNodeWithText("Salvar").performClick()
         composeRule.waitUntil(5_000) {
@@ -144,7 +146,7 @@ class HomeScreenTest {
             MaterialTheme { HomeScreen(viewModel = viewModel) }
         }
         composeRule.waitUntil(5_000) { viewModel.uiState.value is HomeUiState.Content }
-        composeRule.onNodeWithText("Novo hábito").performClick()
+        openCreate("Novo hábito")
         composeRule.onNodeWithText("Salvar").performClick()
         composeRule.onNodeWithText("Informe um nome.").assertIsDisplayed()
         composeRule.onNodeWithText("Frequência").assertIsDisplayed()
@@ -153,6 +155,11 @@ class HomeScreenTest {
         composeRule.onNodeWithText("Salvar").performClick()
         composeRule.onNodeWithText("Use no máximo 80 caracteres.").assertIsDisplayed()
         composeRule.onNodeWithText("Frequência").assertIsDisplayed()
+    }
+
+    private fun openCreate(label: String) {
+        composeRule.onNodeWithContentDescription("Criar").performClick()
+        composeRule.onNodeWithText(label).performClick()
     }
 
     @Test
