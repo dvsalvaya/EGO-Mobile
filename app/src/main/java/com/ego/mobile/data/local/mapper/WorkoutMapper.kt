@@ -42,6 +42,8 @@ fun WorkoutSessionEntity.toDomain(exercises: List<WorkoutExerciseEntity> = empty
         status = runCatching { WorkoutSessionStatus.valueOf(status) }.getOrDefault(WorkoutSessionStatus.IN_PROGRESS),
         notes = notes,
         exercises = exercises.map { it.toDomain() }.sortedBy { it.orderIndex },
+        pausedAt = pausedAt,
+        pausedDurationMillis = pausedDurationMillis,
     )
 }
 
@@ -53,6 +55,8 @@ fun WorkoutSession.toEntity(): WorkoutSessionEntity {
         endedAt = endedAt,
         status = status.name,
         notes = notes,
+        pausedAt = pausedAt,
+        pausedDurationMillis = pausedDurationMillis,
     )
 }
 

@@ -19,4 +19,6 @@ data class WorkoutSessionEntity(
     val endedAt: Long? = null,
     val status: String,
     val notes: String? = null,
+    val pausedAt: Long? = null,
+    val pausedDurationMillis: Long = 0L,
 )

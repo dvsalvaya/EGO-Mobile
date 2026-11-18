@@ -64,6 +64,32 @@ class WorkoutTemplateMigrationTest {
         migrated.close()
     }
 
+    @Test
+    fun migratesVersionSixAndPreservesLegacySessionDurationData() {
+        val database = helper.createDatabase("workout_pause_migration_test.db", 6)
+        database.execSQL(
+            "INSERT INTO workout_sessions (id, title, startedAt, endedAt, status, notes) " +
+                "VALUES (8, 'Treino legado', 1000, 9000, 'COMPLETED', 'nota')",
+        )
+        database.close()
+
+        val migrated = helper.runMigrationsAndValidate("workout_pause_migration_test.db", 7, false, MIGRATION_6_7)
+        migrated.query(
+            "SELECT title, startedAt, endedAt, status, notes, pausedAt, pausedDurationMillis " +
+                "FROM workout_sessions WHERE id = 8",
+        ).use { cursor ->
+            assertTrue(cursor.moveToFirst())
+            assertEquals("Treino legado", cursor.getString(0))
+            assertEquals(1000L, cursor.getLong(1))
+            assertEquals(9000L, cursor.getLong(2))
+            assertEquals("COMPLETED", cursor.getString(3))
+            assertEquals("nota", cursor.getString(4))
+            assertTrue(cursor.isNull(5))
+            assertEquals(0L, cursor.getLong(6))
+        }
+        migrated.close()
+    }
+
     private fun insertLegacyData(database: SupportSQLiteDatabase) {
         database.execSQL(
             "INSERT INTO workout_sessions (id, title, startedAt, endedAt, status, notes) " +

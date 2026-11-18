@@ -133,6 +133,22 @@ class GetWorkoutStatisticsUseCaseTest {
     }
 
     @Test
+    fun `average duration excludes persisted pause intervals`() {
+        val pausedSession = WorkoutSession(
+            id = 15L,
+            title = "Treino com pausas",
+            startedAt = 1_000L,
+            endedAt = 13_000L,
+            status = WorkoutSessionStatus.COMPLETED,
+            pausedDurationMillis = 5_000L,
+        )
+
+        val statistics = useCase.fromSessions(listOf(pausedSession))
+
+        assertEquals(8_000.0 / 60_000.0, statistics.averageDurationMinutes, 0.0001)
+    }
+
+    @Test
     fun `ignores non-completed sessions`() = runTest {
         val sessionInProgress = WorkoutSession(
             id = 1L,

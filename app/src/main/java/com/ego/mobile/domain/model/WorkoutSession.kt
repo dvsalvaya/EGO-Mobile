@@ -8,6 +8,8 @@ data class WorkoutSession(
     val status: WorkoutSessionStatus = WorkoutSessionStatus.IN_PROGRESS,
     val notes: String? = null,
     val exercises: List<WorkoutExercise> = emptyList(),
+    val pausedAt: Long? = null,
+    val pausedDurationMillis: Long = 0L,
 ) {
     init {
         require(title.isNotBlank()) { "Workout session title must not be blank" }
@@ -28,17 +30,24 @@ data class WorkoutSession(
         check(canTransitionTo(newStatus)) {
             "Cannot transition workout session from ${this.status} to $newStatus"
         }
+        val transitionTime = timestamp ?: System.currentTimeMillis()
+        val resumedPause = if (status == WorkoutSessionStatus.PAUSED && newStatus == WorkoutSessionStatus.IN_PROGRESS) {
+            maxOf(0L, transitionTime - (pausedAt ?: transitionTime))
+        } else 0L
+        val terminalPause = if (status == WorkoutSessionStatus.PAUSED && newStatus.isTerminal) {
+            maxOf(0L, transitionTime - (pausedAt ?: transitionTime))
+        } else 0L
         return copy(
             status = newStatus,
-            endedAt = if (newStatus.isTerminal) (timestamp ?: System.currentTimeMillis()) else endedAt,
+            endedAt = if (newStatus.isTerminal) transitionTime else endedAt,
+            pausedAt = if (newStatus == WorkoutSessionStatus.PAUSED) transitionTime else null,
+            pausedDurationMillis = pausedDurationMillis + resumedPause + terminalPause,
         )
     }
 
     fun durationMillis(now: Long = System.currentTimeMillis()): Long {
-        return if (endedAt != null) {
-            maxOf(0L, endedAt - startedAt)
-        } else {
-            maxOf(0L, now - startedAt)
-        }
+        val endTime = endedAt ?: now
+        val currentPause = if (status == WorkoutSessionStatus.PAUSED) maxOf(0L, endTime - (pausedAt ?: endTime)) else 0L
+        return maxOf(0L, endTime - startedAt - pausedDurationMillis - currentPause)
     }
 }

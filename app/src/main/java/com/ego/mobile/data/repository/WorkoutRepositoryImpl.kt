@@ -56,7 +56,7 @@ class WorkoutRepositoryImpl(
         val sessionEntity = workoutDao.getSessionById(sessionId)
             ?: throw IllegalArgumentException("Workout session with id $sessionId not found")
         val domain = sessionEntity.toDomain()
-        val updated = domain.transitionTo(WorkoutSessionStatus.PAUSED)
+        val updated = domain.transitionTo(WorkoutSessionStatus.PAUSED, System.currentTimeMillis())
         workoutDao.updateSession(updated.toEntity())
     }
 
@@ -64,7 +64,7 @@ class WorkoutRepositoryImpl(
         val sessionEntity = workoutDao.getSessionById(sessionId)
             ?: throw IllegalArgumentException("Workout session with id $sessionId not found")
         val domain = sessionEntity.toDomain()
-        val updated = domain.transitionTo(WorkoutSessionStatus.IN_PROGRESS)
+        val updated = domain.transitionTo(WorkoutSessionStatus.IN_PROGRESS, System.currentTimeMillis())
         workoutDao.updateSession(updated.toEntity())
     }
 
@@ -80,7 +80,7 @@ class WorkoutRepositoryImpl(
         val sessionEntity = workoutDao.getSessionById(sessionId)
             ?: throw IllegalArgumentException("Workout session with id $sessionId not found")
         val domain = sessionEntity.toDomain()
-        val updated = domain.transitionTo(WorkoutSessionStatus.CANCELLED)
+        val updated = domain.transitionTo(WorkoutSessionStatus.CANCELLED, System.currentTimeMillis())
         workoutDao.updateSession(updated.toEntity())
     }
 

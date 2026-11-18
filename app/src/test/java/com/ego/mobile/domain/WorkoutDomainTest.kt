@@ -100,6 +100,28 @@ class WorkoutDomainTest {
     }
 
     @Test
+    fun `duration excludes every pause and freezes while paused`() {
+        val started = WorkoutSession(title = "Treino", startedAt = 1_000L)
+        val firstPause = started.transitionTo(WorkoutSessionStatus.PAUSED, 3_000L)
+        assertEquals(2_000L, firstPause.durationMillis(now = 9_000L))
+        val resumed = firstPause.transitionTo(WorkoutSessionStatus.IN_PROGRESS, 5_000L)
+        assertEquals(2_000L, resumed.pausedDurationMillis)
+        val secondPause = resumed.transitionTo(WorkoutSessionStatus.PAUSED, 8_000L)
+        val resumedAgain = secondPause.transitionTo(WorkoutSessionStatus.IN_PROGRESS, 10_000L)
+        assertEquals(4_000L, resumedAgain.pausedDurationMillis)
+        val completed = resumedAgain.transitionTo(WorkoutSessionStatus.COMPLETED, 13_000L)
+        assertEquals(8_000L, completed.durationMillis())
+    }
+
+    @Test
+    fun `completing while paused includes final pause interval`() {
+        val paused = WorkoutSession(title = "Treino", startedAt = 1_000L)
+            .transitionTo(WorkoutSessionStatus.PAUSED, 3_000L)
+        val completed = paused.transitionTo(WorkoutSessionStatus.COMPLETED, 7_000L)
+        assertEquals(2_000L, completed.durationMillis())
+    }
+
+    @Test
     fun `exercise validation requires non blank name and max 80 chars`() {
         val blankEx = assertThrows(IllegalArgumentException::class.java) {
             WorkoutExercise(
