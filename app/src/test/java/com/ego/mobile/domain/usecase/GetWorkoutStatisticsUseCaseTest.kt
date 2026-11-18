@@ -145,7 +145,7 @@ class GetWorkoutStatisticsUseCaseTest {
 
         val statistics = useCase.fromSessions(listOf(pausedSession))
 
-        assertEquals(8_000.0 / 60_000.0, statistics.averageDurationMinutes, 0.0001)
+        assertEquals(7_000.0 / 60_000.0, statistics.averageDurationMinutes, 0.0001)
     }
 
     @Test

@@ -29,9 +29,10 @@ class TasksViewModelTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         var viewModelStore: ViewModelStore? = null
         try {
-            val now = 300_000L
+            val now = java.time.LocalDate.of(2026, 11, 18).atTime(12, 0)
+                .atZone(java.time.ZoneId.of("America/Sao_Paulo")).toInstant().toEpochMilli()
             val repository = FakeTaskRepository()
-            val overdueId = repository.createTask(task("Vencida", dueAt = now - 1L))
+            val overdueId = repository.createTask(task("Vencida", dueAt = now - 86_400_000L))
             val viewModel = TasksViewModel(repository, clock = { now })
             viewModelStore = ViewModelStore().apply { put("tasks", viewModel) }
             runCurrent()
@@ -59,9 +60,10 @@ class TasksViewModelTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         var viewModelStore: ViewModelStore? = null
         try {
-            val now = 100_000L
+            val now = java.time.LocalDate.of(2026, 11, 18).atTime(12, 0)
+                .atZone(java.time.ZoneId.of("America/Sao_Paulo")).toInstant().toEpochMilli()
             val repository = FakeTaskRepository()
-            val overdueId = repository.createTask(task("Vencida", dueAt = now - 1L))
+            val overdueId = repository.createTask(task("Vencida", dueAt = now - 86_400_000L))
             val noDueId = repository.createTask(task("Sem prazo"))
             val viewModel = TasksViewModel(repository, clock = { now })
             viewModelStore = ViewModelStore().apply { put("tasks", viewModel) }
