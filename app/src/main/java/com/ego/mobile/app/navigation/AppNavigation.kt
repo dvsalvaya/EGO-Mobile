@@ -10,7 +10,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import com.ego.mobile.feature.habits.HabitsScreen
 import com.ego.mobile.feature.history.HistoryScreen
@@ -20,7 +20,7 @@ import com.ego.mobile.feature.tasks.TasksScreen
 
 @Composable
 fun AppNavigation() {
-    val navigationState = remember { NavigationState() }
+    val navigationState = rememberSaveable(saver = NavigationState.Saver) { NavigationState() }
     val destination = navigationState.currentDestination
 
     BackHandler(enabled = destination != AppDestination.HOME) {

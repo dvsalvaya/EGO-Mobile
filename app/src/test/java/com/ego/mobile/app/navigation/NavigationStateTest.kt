@@ -72,4 +72,19 @@ class NavigationStateTest {
         assertFalse(handled)
         assertEquals(AppDestination.HOME, state.currentDestination)
     }
+
+    @Test
+    fun `saveable state restores selected destination and routine tab`() {
+        val state = NavigationState()
+        state.navigateTo(AppDestination.ROUTINES)
+        state.navigateToRoutine(com.ego.mobile.domain.model.ActivityType.HAIRCARE)
+
+        val restored = NavigationState.Saver.restore(listOf(
+            AppDestination.ROUTINES.ordinal,
+            state.routinesInitialTab,
+        ))
+
+        assertEquals(AppDestination.ROUTINES, restored?.currentDestination)
+        assertEquals(1, restored?.routinesInitialTab)
+    }
 }
