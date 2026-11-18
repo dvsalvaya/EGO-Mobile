@@ -4,6 +4,11 @@ import android.database.sqlite.SQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.ego.mobile.data.local.mapper.toDomain
+import com.ego.mobile.data.local.mapper.toEntity
+import com.ego.mobile.domain.model.WorkoutSession
+import com.ego.mobile.domain.model.WorkoutSessionStatus
+import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.After
@@ -91,6 +96,26 @@ class WorkoutTemplateMigrationTest {
             assertTrue(cursor.isNull(5))
             assertEquals(0L, cursor.getLong(6))
         }
+    }
+
+    @Test
+    fun pausedSessionKeepsItsDurationAfterDatabaseReopens() = runBlocking {
+        val dao = EgoDatabaseProvider.getDatabase(context, DATABASE_NAME).workoutDao()
+        val paused = WorkoutSession(title = "Treino pausado", startedAt = 1_000L)
+            .transitionTo(WorkoutSessionStatus.PAUSED, 3_000L)
+        val sessionId = dao.insertSession(paused.toEntity())
+
+        EgoDatabaseProvider.resetForTesting()
+        val reopened = EgoDatabaseProvider.getDatabase(context, DATABASE_NAME).workoutDao()
+        val session = checkNotNull(reopened.getSessionById(sessionId)).toDomain()
+        assertEquals(WorkoutSessionStatus.PAUSED, session.status)
+        assertEquals(2_000L, session.durationMillis(now = 7_000L))
+
+        val completed = session.transitionTo(WorkoutSessionStatus.IN_PROGRESS, 7_000L)
+            .transitionTo(WorkoutSessionStatus.COMPLETED, 9_000L)
+        reopened.updateSession(completed.toEntity())
+        val saved = checkNotNull(reopened.getSessionById(sessionId)).toDomain()
+        assertEquals(4_000L, saved.durationMillis())
     }
 
     private fun createLegacyDatabase(version: Int, seed: (SQLiteDatabase) -> Unit) {

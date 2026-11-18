@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.room.Room
@@ -41,12 +42,11 @@ class WorkoutRegressionTest {
 
     @Test
     fun selectedDestinationSurvivesActivityRecreation() {
-        composeRule.onNodeWithText("Tarefas").performClick()
-        composeRule.onNodeWithText("Nenhuma tarefa aberta").assertIsDisplayed()
-
-        composeRule.activityRule.scenario.recreate()
-
-        composeRule.onNodeWithText("Nenhuma tarefa aberta").assertIsDisplayed()
+        listOf("Início", "Hábitos", "Tarefas", "Rotinas", "Histórico").forEach { destination ->
+            composeRule.onNodeWithText(destination).performClick()
+            composeRule.activityRule.scenario.recreate()
+            composeRule.onNodeWithText(destination).assertIsSelected()
+        }
     }
 
     @Test
