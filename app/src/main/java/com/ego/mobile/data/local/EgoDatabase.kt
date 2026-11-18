@@ -12,6 +12,9 @@ import com.ego.mobile.data.local.dao.TrainingModelDao
 import com.ego.mobile.data.local.dao.TrainingModelExerciseDao
 import com.ego.mobile.data.local.dao.WorkoutDao
 import com.ego.mobile.data.local.entity.HabitEntity
+import com.ego.mobile.data.local.entity.HabitPlanEntity
+import com.ego.mobile.domain.model.habitZone
+import java.time.LocalDate
 import com.ego.mobile.data.local.entity.HabitOccurrenceEntity
 import com.ego.mobile.data.local.entity.TaskEntity
 import com.ego.mobile.data.local.entity.WorkoutExerciseEntity
@@ -164,9 +167,26 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
     }
 }
 
+val MIGRATION_7_8 = object : Migration(7, 8) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE habit_plans (habitId INTEGER NOT NULL, effectiveFrom TEXT NOT NULL, " +
+                "frequency TEXT NOT NULL, status TEXT NOT NULL, PRIMARY KEY(habitId, effectiveFrom), " +
+                "FOREIGN KEY(habitId) REFERENCES habits(id) ON UPDATE NO ACTION ON DELETE CASCADE)",
+        )
+        // Version 7 recorded facts, but did not record when each frequency became effective.
+        db.execSQL(
+            "INSERT INTO habit_plans (habitId, effectiveFrom, frequency, status) " +
+                "SELECT id, ?, frequency, status FROM habits",
+            arrayOf(LocalDate.now(habitZone).toString()),
+        )
+    }
+}
+
 @Database(
     entities = [
         HabitEntity::class,
+        HabitPlanEntity::class,
         HabitOccurrenceEntity::class,
         TaskEntity::class,
         WorkoutSessionEntity::class,
@@ -176,7 +196,7 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
         TrainingModelEntity::class,
         TrainingModelExerciseEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
 )
 abstract class EgoDatabase : RoomDatabase() {

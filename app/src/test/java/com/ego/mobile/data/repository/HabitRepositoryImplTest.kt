@@ -2,6 +2,8 @@ package com.ego.mobile.data.repository
 
 import com.ego.mobile.data.local.dao.HabitDao
 import com.ego.mobile.data.local.dao.HabitOccurrenceDao
+import com.ego.mobile.data.local.entity.HabitCalendarEntities
+import com.ego.mobile.data.local.entity.HabitPlanEntity
 import com.ego.mobile.data.local.entity.HabitEntity
 import com.ego.mobile.data.local.entity.HabitOccurrenceEntity
 import com.ego.mobile.domain.model.Habit
@@ -28,7 +30,25 @@ class FakeHabitDao : HabitDao {
     private val flow = MutableStateFlow<List<HabitEntity>>(emptyList())
     private var nextId = 1L
 
+    private val plans = mutableMapOf<Pair<Long, String>, HabitPlanEntity>()
+    private val revision = MutableStateFlow(0)
+
+    override suspend fun putPlan(plan: HabitPlanEntity) {
+        plans[plan.habitId to plan.effectiveFrom] = plan
+        revision.value++
+    }
+
+    override suspend fun planOn(habitId: Long, date: String) = plans.values
+        .filter { it.habitId == habitId && it.effectiveFrom <= date }.maxByOrNull { it.effectiveFrom }
+
+    override fun observeCalendars(): Flow<List<HabitCalendarEntities>> = revision.map {
+        items.values.map { habit ->
+            HabitCalendarEntities(habit, plans.values.filter { it.habitId == habit.id }, occurrences.values.filter { it.habitId == habit.id })
+        }
+    }
+
     private fun emit() {
+        revision.value++
         flow.value = items.values.sortedByDescending { it.createdAt }
     }
 
@@ -67,12 +87,14 @@ class FakeHabitDao : HabitDao {
     override suspend fun insertOccurrence(occurrence: HabitOccurrenceEntity): Long {
         val id = if (occurrence.id == 0L) (occurrences.keys.maxOrNull() ?: 0L) + 1 else occurrence.id
         occurrences[id] = occurrence.copy(id = id)
+        revision.value++
         onOccurrencesChanged()
         return id
     }
 
     override suspend fun updateOccurrence(occurrence: HabitOccurrenceEntity) {
         occurrences[occurrence.id] = occurrence
+        revision.value++
         onOccurrencesChanged()
     }
 }
