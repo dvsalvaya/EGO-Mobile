@@ -139,6 +139,23 @@ class HomeScreenTest {
     }
 
     @Test
+    fun habitFormKeepsDialogOpenAndShowsInlineErrorsForInvalidInput() {
+        composeRule.setContent {
+            MaterialTheme { HomeScreen(viewModel = viewModel) }
+        }
+        composeRule.waitUntil(5_000) { viewModel.uiState.value is HomeUiState.Content }
+        composeRule.onNodeWithText("Novo hÃ¡bito").performClick()
+        composeRule.onNodeWithText("Salvar").performClick()
+        composeRule.onNodeWithText("Informe um nome.").assertIsDisplayed()
+        composeRule.onNodeWithText("FrequÃªncia").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Nome").performTextInput("M".repeat(81))
+        composeRule.onNodeWithText("Salvar").performClick()
+        composeRule.onNodeWithText("Use no maximo 80 caracteres.").assertIsDisplayed()
+        composeRule.onNodeWithText("FrequÃªncia").assertIsDisplayed()
+    }
+
+    @Test
     fun overdueTaskAndActiveWorkoutAreClearlyActionable() {
         runBlocking {
             taskRepository.createTask(

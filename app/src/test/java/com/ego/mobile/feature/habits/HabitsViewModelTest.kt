@@ -61,6 +61,8 @@ class FakeHabitRepository : HabitRepository {
         return Result.success(Unit)
     }
 
+    override suspend fun undoOccurrence(habitId: Long, dateCivil: String): Result<Unit> = Result.success(Unit)
+
     override suspend fun pauseHabit(habitId: Long): Result<Unit> {
         val habitsIndex = internalHabits.indexOfFirst { it.id == habitId }
         if (habitsIndex < 0) return Result.failure(IllegalArgumentException("Habit not found."))
@@ -75,6 +77,14 @@ class FakeHabitRepository : HabitRepository {
         if (habitsIndex < 0) return Result.failure(IllegalArgumentException("Habit not found."))
         val updated = internalHabits[habitsIndex].copy(status = HabitStatus.ACTIVE, updatedAt = System.currentTimeMillis())
         internalHabits[habitsIndex] = updated
+        habitsFlow.value = internalHabits.toList()
+        return Result.success(Unit)
+    }
+
+    override suspend fun archiveHabit(habitId: Long): Result<Unit> {
+        val index = internalHabits.indexOfFirst { it.id == habitId }
+        if (index < 0) return Result.failure(IllegalArgumentException("Habit not found."))
+        internalHabits[index] = internalHabits[index].copy(status = HabitStatus.ARCHIVED)
         habitsFlow.value = internalHabits.toList()
         return Result.success(Unit)
     }
@@ -152,5 +162,27 @@ class HabitsViewModelTest {
         val state = viewModel.uiState.value
         assertTrue(state.activeHabits.first().status == HabitStatus.ACTIVE)
         assertEquals(null, state.errorMessage)
+    }
+
+    @Test
+    fun `invalid name and description are reported without saving`() = runTest(dispatcher) {
+        val repository = FakeHabitRepository()
+        val viewModel = HabitsViewModel(repository)
+        runCurrent()
+
+        viewModel.onCreateHabit(" ", null, HabitFrequency.Daily)
+        runCurrent()
+        assertEquals("Habit name is required.", viewModel.uiState.value.errorMessage)
+        assertTrue(viewModel.uiState.value.activeHabits.isEmpty())
+
+        viewModel.onCreateHabit("Valid name", "D".repeat(251), HabitFrequency.Daily)
+        runCurrent()
+        assertEquals("Habit description must be 250 characters or less.", viewModel.uiState.value.errorMessage)
+        assertTrue(viewModel.uiState.value.activeHabits.isEmpty())
+
+        viewModel.onCreateHabit("N".repeat(81), null, HabitFrequency.Daily)
+        runCurrent()
+        assertEquals("Habit name must be 1 to 80 characters.", viewModel.uiState.value.errorMessage)
+        assertTrue(viewModel.uiState.value.activeHabits.isEmpty())
     }
 }
