@@ -196,4 +196,23 @@ class HabitsViewModelTest {
         assertEquals("Habit name must be 1 to 80 characters.", viewModel.uiState.value.errorMessage)
         assertTrue(viewModel.uiState.value.activeHabits.isEmpty())
     }
+
+    @Test
+    fun `editing habit updates its weekly goal preferences`() = runTest(dispatcher) {
+        val repository = FakeHabitRepository()
+        val viewModel = HabitsViewModel(repository, today = { LocalDate.of(2026, 11, 18) })
+        val id = repository.saveHabit(
+            Habit(name = "Leitura", frequency = HabitFrequency.Daily, createdAt = 1L, updatedAt = 1L),
+        )
+        runCurrent()
+
+        val weekly = HabitFrequency.TimesPerWeek(4, setOf(java.time.DayOfWeek.TUESDAY, java.time.DayOfWeek.THURSDAY))
+        viewModel.onUpdateHabitDetails(id, "Leitura", "10 páginas", weekly)
+        runCurrent()
+
+        val updated = repository.getHabitById(id)!!
+        assertEquals("Leitura", updated.name)
+        assertEquals("10 páginas", updated.description)
+        assertEquals(weekly, updated.frequency)
+    }
 }

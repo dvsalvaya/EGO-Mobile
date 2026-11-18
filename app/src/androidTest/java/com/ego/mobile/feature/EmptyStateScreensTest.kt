@@ -370,6 +370,7 @@ class EmptyStateScreensTest {
                 WorkoutRepositoryImpl(database.workoutDao()),
                 HaircareRepositoryImpl(database.haircareDao()),
             ),
+            habitRepository,
         )
         viewModelStore.put("history-empty-action-check", viewModel)
         composeRule.setContent {
