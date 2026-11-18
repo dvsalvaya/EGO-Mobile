@@ -9,6 +9,9 @@ data class HomeSummary(
         val habitId: Long,
         val title: String,
         val status: HabitOccurrenceStatus,
+        val completedThisWeek: Int = 0,
+        val weeklyTarget: Int? = null,
+        val canComplete: Boolean = true,
     )
 
     data class ActiveRoutine(

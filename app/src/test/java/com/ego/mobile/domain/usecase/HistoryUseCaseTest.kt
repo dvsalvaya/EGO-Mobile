@@ -34,7 +34,14 @@ class HistoryUseCaseTest {
         val tasks = FakeConsolidationTaskRepository()
         val workouts = FakeConsolidationWorkoutRepository()
         val haircare = FakeConsolidationHaircareRepository()
-        val habit = Habit(id = 1L, name = "Leitura", frequency = HabitFrequency.Daily, createdAt = 1L, updatedAt = 1L)
+        val habit = Habit(
+            id = 1L,
+            name = "Leitura arquivada",
+            frequency = HabitFrequency.Daily,
+            status = HabitStatus.ARCHIVED,
+            createdAt = 1L,
+            updatedAt = 1L,
+        )
         habits.habits.value = listOf(habit)
         habits.setOccurrences(
             habit.id,

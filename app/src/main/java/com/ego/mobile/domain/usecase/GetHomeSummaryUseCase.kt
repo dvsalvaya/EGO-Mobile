@@ -4,6 +4,7 @@ import com.ego.mobile.domain.model.ActivityType
 import com.ego.mobile.domain.model.HomeSummary
 import com.ego.mobile.domain.model.HaircareOccurrenceStatus
 import com.ego.mobile.domain.model.HabitOccurrenceStatus
+import com.ego.mobile.domain.model.HabitProgress
 import com.ego.mobile.domain.model.HabitStatus
 import com.ego.mobile.domain.model.WorkoutSessionStatus
 import com.ego.mobile.domain.repository.HabitRepository
@@ -36,13 +37,16 @@ class GetHomeSummaryUseCase(
                     habit.status == HabitStatus.ACTIVE && habit.frequency.requiresOccurrenceOn(date)
                 }
                 .map { habit ->
-                    val occurrence = snapshot.occurrencesByHabit[habit.id]
-                        .orEmpty()
-                        .firstOrNull { it.date == date }
+                    val occurrences = snapshot.occurrencesByHabit[habit.id].orEmpty()
+                    val occurrence = occurrences.firstOrNull { it.date == date }
+                    val progress = HabitProgress.calculate(habit, occurrences, date)
                     HomeSummary.TodayHabit(
                         habitId = habit.id,
                         title = habit.name,
                         status = occurrence?.status ?: HabitOccurrenceStatus.PENDING,
+                        completedThisWeek = progress.completedThisWeek,
+                        weeklyTarget = progress.weeklyTarget,
+                        canComplete = progress.canCompleteToday,
                     )
                 }
                 .toList()

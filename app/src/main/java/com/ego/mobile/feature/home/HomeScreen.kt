@@ -108,6 +108,7 @@ fun HomeScreen(
                     TodayHabitsSummaryCard(
                         habits = state.summary.todayHabits,
                         onComplete = viewModel::onCompleteHabit,
+                        onUndo = viewModel::onUndoHabit,
                     )
                 }
                 item {

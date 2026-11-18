@@ -63,6 +63,33 @@ class HomeSummaryUseCaseTest {
     }
 
     @Test
+    fun `weekly times progress appears on any weekday and closes eligibility at target`() = runTest {
+        val habits = FakeConsolidationHabitRepository()
+        val weekly = habit(id = 10L, name = "Treinar", frequency = HabitFrequency.TimesPerWeek(2))
+        habits.habits.value = listOf(weekly)
+        habits.setOccurrences(
+            weekly.id,
+            listOf(occurrence(101L, weekly.id, today.minusDays(2), HabitOccurrenceStatus.COMPLETED)),
+        )
+
+        val incomplete = createUseCase(habits = habits).invoke().first().todayHabits.single()
+        assertEquals(1, incomplete.completedThisWeek)
+        assertEquals(2, incomplete.weeklyTarget)
+        assertTrue(incomplete.canComplete)
+
+        habits.setOccurrences(
+            weekly.id,
+            listOf(
+                occurrence(101L, weekly.id, today.minusDays(2), HabitOccurrenceStatus.COMPLETED),
+                occurrence(102L, weekly.id, today.minusDays(1), HabitOccurrenceStatus.COMPLETED),
+            ),
+        )
+        val complete = createUseCase(habits = habits).invoke().first().todayHabits.single()
+        assertEquals(2, complete.completedThisWeek)
+        assertTrue(!complete.canComplete)
+    }
+
+    @Test
     fun `prioritizes dated open tasks and shows workout ahead of haircare`() = runTest {
         val tasks = FakeConsolidationTaskRepository()
         val workouts = FakeConsolidationWorkoutRepository()

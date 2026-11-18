@@ -17,11 +17,14 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
 class FakeHabitDao : HabitDao {
     val items = mutableMapOf<Long, HabitEntity>()
+    var occurrences = mutableMapOf<Long, HabitOccurrenceEntity>()
+    var onOccurrencesChanged: () -> Unit = {}
     private val flow = MutableStateFlow<List<HabitEntity>>(emptyList())
     private var nextId = 1L
 
@@ -54,6 +57,24 @@ class FakeHabitDao : HabitDao {
     override fun getAll(): Flow<List<HabitEntity>> {
         return flow
     }
+
+    override suspend fun getOccurrence(habitId: Long, dateCivil: String): HabitOccurrenceEntity? =
+        occurrences.values.firstOrNull { it.habitId == habitId && it.dateCivil == dateCivil }
+
+    override suspend fun countCompletedInWeek(habitId: Long, weekStart: String, weekEnd: String): Int =
+        occurrences.values.count { it.habitId == habitId && it.status == "COMPLETED" && it.dateCivil in weekStart..weekEnd }
+
+    override suspend fun insertOccurrence(occurrence: HabitOccurrenceEntity): Long {
+        val id = if (occurrence.id == 0L) (occurrences.keys.maxOrNull() ?: 0L) + 1 else occurrence.id
+        occurrences[id] = occurrence.copy(id = id)
+        onOccurrencesChanged()
+        return id
+    }
+
+    override suspend fun updateOccurrence(occurrence: HabitOccurrenceEntity) {
+        occurrences[occurrence.id] = occurrence
+        onOccurrencesChanged()
+    }
 }
 
 class FakeHabitOccurrenceDao : HabitOccurrenceDao {
@@ -64,6 +85,8 @@ class FakeHabitOccurrenceDao : HabitOccurrenceDao {
     private fun emit() {
         flow.value = items.values.sortedBy { it.dateCivil }
     }
+
+    fun emitForTest() = emit()
 
     override suspend fun insert(occurrence: HabitOccurrenceEntity): Long {
         val id = if (occurrence.id == 0L) nextId++ else occurrence.id
@@ -94,6 +117,11 @@ class FakeHabitOccurrenceDao : HabitOccurrenceDao {
             .filter { it.habitId == habitId && it.dateCivil >= startDate && it.dateCivil <= endDate }
             .sortedBy { it.dateCivil }
     }
+
+    fun seed(occurrence: HabitOccurrenceEntity) {
+        items[occurrence.id] = occurrence
+        emit()
+    }
 }
 
 class HabitRepositoryImplTest {
@@ -107,6 +135,8 @@ class HabitRepositoryImplTest {
     fun setup() {
         fakeDao = FakeHabitDao()
         fakeOccurrenceDao = FakeHabitOccurrenceDao()
+        fakeDao.occurrences = fakeOccurrenceDao.items
+        fakeDao.onOccurrencesChanged = { fakeOccurrenceDao.emitForTest() }
         repository = HabitRepositoryImpl(fakeDao, testDispatcher, fakeOccurrenceDao)
     }
 
@@ -196,6 +226,32 @@ class HabitRepositoryImplTest {
         val occurrence = repository.getOccurrenceForDate(habitId, "2026-10-28")
         assertEquals(HabitOccurrenceStatus.COMPLETED, occurrence?.status)
         assertEquals("Concluído", occurrence?.notes)
+    }
+
+    @Test
+    fun `weekly quick completion counts any days and rejects completion beyond the goal`() = runTest(testDispatcher) {
+        val habit = Habit(name = "Treinar", frequency = HabitFrequency.TimesPerWeek(2), createdAt = 1000L, updatedAt = 1000L)
+        val habitId = repository.saveHabit(habit)
+
+        assertEquals(true, repository.completeOccurrence(habitId, "2026-11-16").isSuccess)
+        assertEquals(true, repository.completeOccurrence(habitId, "2026-11-18").isSuccess)
+        assertEquals(true, repository.completeOccurrence(habitId, "2026-11-20").isFailure)
+        assertEquals(2, fakeDao.countCompletedInWeek(habitId, "2026-11-16", "2026-11-22"))
+    }
+
+    @Test
+    fun `undo resets today's occurrence and archive preserves it`() = runTest(testDispatcher) {
+        val habitId = repository.saveHabit(Habit(name = "Leitura", frequency = HabitFrequency.Daily, createdAt = 1000L, updatedAt = 1000L))
+        repository.completeOccurrence(habitId, "2026-11-18").getOrThrow()
+
+        repository.undoOccurrence(habitId, "2026-11-18").getOrThrow()
+        assertEquals(HabitOccurrenceStatus.PENDING, repository.getOccurrenceForDate(habitId, "2026-11-18")?.status)
+        repository.completeOccurrence(habitId, "2026-11-18").getOrThrow()
+        repository.archiveHabit(habitId).getOrThrow()
+
+        assertEquals(HabitStatus.ARCHIVED, repository.getHabitById(habitId)?.status)
+        assertEquals(HabitOccurrenceStatus.COMPLETED, repository.getOccurrenceForDate(habitId, "2026-11-18")?.status)
+        assertTrue(repository.completeOccurrence(habitId, "2026-11-19").isFailure)
     }
 
     @Test

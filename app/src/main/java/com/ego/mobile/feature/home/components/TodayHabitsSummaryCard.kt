@@ -22,6 +22,7 @@ import com.ego.mobile.domain.model.HomeSummary
 fun TodayHabitsSummaryCard(
     habits: List<HomeSummary.TodayHabit>,
     onComplete: (Long) -> Unit,
+    onUndo: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Card(modifier = modifier.fillMaxWidth()) {
@@ -44,14 +45,24 @@ fun TodayHabitsSummaryCard(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(habit.title, fontWeight = FontWeight.SemiBold)
+                            if (habit.weeklyTarget != null) {
+                                Text("Progresso da semana: ${habit.completedThisWeek}/${habit.weeklyTarget}")
+                            }
                         }
-                        if (habit.status == HabitOccurrenceStatus.PENDING) {
+                        if (habit.status == HabitOccurrenceStatus.COMPLETED) {
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text("Concluido hoje", style = MaterialTheme.typography.labelLarge)
+                                Button(onClick = { onUndo(habit.habitId) }) { Text("Desfazer") }
+                            }
+                        } else if (habit.canComplete && habit.status == HabitOccurrenceStatus.PENDING) {
                             Button(
                                 onClick = { onComplete(habit.habitId) },
                                 modifier = Modifier.testTag("home_habit_complete_${habit.habitId}"),
                             ) {
                                 Text("Concluir")
                             }
+                        } else if (habit.weeklyTarget != null && habit.completedThisWeek >= habit.weeklyTarget) {
+                            Text("Meta semanal atingida", style = MaterialTheme.typography.labelLarge)
                         } else {
                             Text(
                                 text = if (habit.status == HabitOccurrenceStatus.COMPLETED) "Concluído" else "Ignorado",

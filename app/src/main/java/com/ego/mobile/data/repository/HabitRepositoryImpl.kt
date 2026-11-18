@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.time.DayOfWeek
 
 class HabitRepositoryImpl(
     private val habitDao: HabitDao,
@@ -54,10 +55,13 @@ class HabitRepositoryImpl(
         }
 
         val now = System.currentTimeMillis()
+        val habit = habitDao.getById(habitId)?.toDomain()
+            ?: return@withContext Result.failure(IllegalArgumentException("Habit not found."))
+        val date = LocalDate.parse(dateCivil)
         val existing = habitOccurrenceDao.getByHabitAndDate(habitId, dateCivil)
         val occurrence = (existing?.toDomain() ?: HabitOccurrence(
             habitId = habitId,
-            date = LocalDate.parse(dateCivil),
+            date = date,
             status = HabitOccurrenceStatus.PENDING,
             createdAt = now,
             updatedAt = now,
@@ -68,17 +72,31 @@ class HabitRepositoryImpl(
             updatedAt = now,
         )
 
-        if (existing == null) {
-            habitOccurrenceDao.insert(occurrence.toEntity())
-        } else {
-            habitOccurrenceDao.update(occurrence.toEntity())
-        }
+        val weekStart = date.with(DayOfWeek.MONDAY).toString()
+        val weekEnd = date.with(DayOfWeek.SUNDAY).toString()
+        val weeklyTarget = (habit.frequency as? com.ego.mobile.domain.model.HabitFrequency.TimesPerWeek)?.count
+        val saved = habitDao.completeOccurrenceIfEligible(
+            habitId = habitId,
+            dateCivil = dateCivil,
+            weekStart = weekStart,
+            weekEnd = weekEnd,
+            expectedFrequency = habit.frequency.toPersistedValue(),
+            weeklyTarget = weeklyTarget,
+            occurrence = occurrence.toEntity(),
+        )
+        if (saved) Result.success(Unit) else Result.failure(IllegalStateException("Habit is not eligible for completion."))
+    }
 
-        Result.success(Unit)
+    override suspend fun undoOccurrence(habitId: Long, dateCivil: String): Result<Unit> = withContext(ioDispatcher) {
+        val changed = habitDao.undoOccurrence(habitId, dateCivil, System.currentTimeMillis())
+        if (changed) Result.success(Unit) else Result.failure(IllegalStateException("No completed occurrence to undo."))
     }
 
     override suspend fun pauseHabit(habitId: Long): Result<Unit> = withContext(ioDispatcher) {
         val habit = habitDao.getById(habitId) ?: return@withContext Result.failure(IllegalArgumentException("Habit not found."))
+        if (habit.status != HabitStatus.ACTIVE.name) {
+            return@withContext Result.failure(IllegalStateException("Only active habits can be paused."))
+        }
         val updated = habit.toDomain().copy(status = HabitStatus.PAUSED, updatedAt = System.currentTimeMillis())
         habitDao.update(updated.toEntity())
         Result.success(Unit)
@@ -86,8 +104,18 @@ class HabitRepositoryImpl(
 
     override suspend fun resumeHabit(habitId: Long): Result<Unit> = withContext(ioDispatcher) {
         val habit = habitDao.getById(habitId) ?: return@withContext Result.failure(IllegalArgumentException("Habit not found."))
+        if (habit.status != HabitStatus.PAUSED.name) {
+            return@withContext Result.failure(IllegalStateException("Only paused habits can be resumed."))
+        }
         val updated = habit.toDomain().copy(status = HabitStatus.ACTIVE, updatedAt = System.currentTimeMillis())
         habitDao.update(updated.toEntity())
+        Result.success(Unit)
+    }
+
+    override suspend fun archiveHabit(habitId: Long): Result<Unit> = withContext(ioDispatcher) {
+        val habit = habitDao.getById(habitId)?.toDomain()
+            ?: return@withContext Result.failure(IllegalArgumentException("Habit not found."))
+        habitDao.update(habit.copy(status = HabitStatus.ARCHIVED, updatedAt = System.currentTimeMillis()).toEntity())
         Result.success(Unit)
     }
 

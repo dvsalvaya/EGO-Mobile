@@ -28,8 +28,7 @@ sealed class HabitFrequency {
         }
 
         override fun requiresOccurrenceOn(date: LocalDate): Boolean {
-            val weekWindow = date.dayOfWeek.value
-            return weekWindow <= count
+            return true
         }
 
         override fun toPersistedValue(): String = "TIMES_PER_WEEK:$count"
