@@ -38,6 +38,7 @@ import com.ego.mobile.domain.model.Habit
 import com.ego.mobile.domain.model.HabitFrequency
 import com.ego.mobile.domain.model.HabitProgress
 import com.ego.mobile.domain.model.HabitStatus
+import com.ego.mobile.feature.common.EmptyState
 import java.time.DayOfWeek
 
 @Composable
@@ -56,17 +57,13 @@ fun HabitsScreen(viewModel: HabitsViewModel = rememberHabitsViewModel()) {
                     Text(message, Modifier.padding(horizontal = 16.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.error)
                 }
                 if (uiState.isEmpty && !uiState.isLoading && uiState.errorMessage == null) {
-                    Column(
-                        Modifier.fillMaxSize().padding(24.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Text("Nenhum hábito cadastrado", style = MaterialTheme.typography.headlineSmall)
-                        Spacer(Modifier.height(12.dp))
-                        Text("Crie um hábito para começar a acompanhar sua rotina.")
-                        Spacer(Modifier.height(16.dp))
-                        Button(onClick = { isDialogOpen = true }) { Text("Adicionar hábito") }
-                    }
+                    EmptyState(
+                        title = "Nenhum hábito cadastrado",
+                        message = "Crie um hábito para começar a acompanhar sua rotina.",
+                        modifier = Modifier.fillMaxSize().padding(24.dp),
+                        actionLabel = "Adicionar hábito",
+                        onActionClick = { isDialogOpen = true },
+                    )
                 } else {
                     LazyColumn(
                         Modifier.weight(1f).padding(horizontal = 16.dp, vertical = 20.dp),

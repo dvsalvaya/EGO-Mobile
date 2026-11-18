@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ego.mobile.domain.model.WorkoutSession
+import com.ego.mobile.feature.common.EmptyState
+import com.ego.mobile.feature.common.SectionHeader
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -24,6 +26,7 @@ import java.util.Locale
 @Composable
 fun WorkoutHistoryView(
     completedSessions: List<WorkoutSession>,
+    onStartWorkout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -31,25 +34,18 @@ fun WorkoutHistoryView(
             .fillMaxWidth()
             .padding(16.dp),
     ) {
-        Text(
-            text = "Histórico de Treinos",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-        )
+        SectionHeader(title = "Histórico de Treinos")
 
         Spacer(modifier = Modifier.height(12.dp))
 
         if (completedSessions.isEmpty()) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    text = "Nenhum treino concluído ainda. Inicie seu primeiro treino acima!",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(16.dp),
-                )
-            }
+            EmptyState(
+                title = "Nenhum treino concluído ainda",
+                message = "Nenhum treino concluído ainda. Inicie seu primeiro treino acima!",
+                actionLabel = "Iniciar Treino",
+                onActionClick = onStartWorkout,
+                isCard = true,
+            )
         } else {
             Column(
                 modifier = Modifier.fillMaxWidth(),

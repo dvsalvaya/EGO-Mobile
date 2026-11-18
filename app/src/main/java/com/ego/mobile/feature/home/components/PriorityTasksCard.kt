@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ego.mobile.domain.model.Task
+import com.ego.mobile.feature.common.EmptyState
+import com.ego.mobile.feature.common.SectionHeader
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -31,11 +33,13 @@ fun PriorityTasksCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Tarefas prioritárias", style = MaterialTheme.typography.titleLarge)
+            SectionHeader(title = "Tarefas prioritárias")
             if (tasks.isEmpty()) {
-                Text(
-                    "Nenhuma tarefa em aberto.",
-                    style = MaterialTheme.typography.bodyMedium,
+                EmptyState(
+                    title = "Nenhuma tarefa em aberto",
+                    message = "Suas tarefas prioritárias aparecerão aqui.",
+                    modifier = Modifier.fillMaxWidth(),
+                    iconContentDescription = null,
                 )
             } else {
                 tasks.forEach { task ->

@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ego.mobile.feature.history.components.HistoryFilterChips
 import com.ego.mobile.feature.history.components.HistoryTimelineItem
+import com.ego.mobile.feature.common.EmptyState
 
 @Composable
 fun HistoryScreen(
@@ -62,20 +63,14 @@ fun HistoryScreen(
                             Text(message, color = MaterialTheme.colorScheme.error)
                         }
                     }
-                    uiState.visibleItems.isEmpty() -> Column(
+                    uiState.visibleItems.isEmpty() -> EmptyState(
+                        title = if (uiState.items.isEmpty()) "Nenhuma atividade registrada." else "Nenhuma atividade encontrada",
+                        message = if (uiState.items.isEmpty()) "As atividades registradas aparecerão aqui."
+                        else "Experimente selecionar outro filtro para ver atividades.",
                         modifier = Modifier.fillMaxSize().padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        Text(
-                            text = if (uiState.items.isEmpty()) {
-                                "Nenhuma atividade registrada."
-                            } else {
-                                "Nenhuma atividade encontrada para este filtro."
-                            },
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                        actionLabel = null,
+                        onActionClick = null,
+                    )
                     else -> Column(modifier = Modifier.fillMaxSize()) {
                         uiState.errorMessage?.let { message ->
                             Text(

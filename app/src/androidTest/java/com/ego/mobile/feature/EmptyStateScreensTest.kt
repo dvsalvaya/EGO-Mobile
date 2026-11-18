@@ -3,11 +3,14 @@ package com.ego.mobile.feature
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStore
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
@@ -20,6 +23,8 @@ import com.ego.mobile.domain.model.Habit
 import com.ego.mobile.domain.model.Task
 import com.ego.mobile.domain.repository.HabitRepository
 import com.ego.mobile.domain.repository.TaskRepository
+import com.ego.mobile.feature.common.EmptyState
+import com.ego.mobile.feature.common.SectionHeader
 import com.ego.mobile.feature.habits.HabitsScreen
 import com.ego.mobile.feature.habits.HabitsViewModel
 import com.ego.mobile.feature.history.HistoryScreen
@@ -36,6 +41,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -288,5 +294,91 @@ class EmptyStateScreensTest {
         composeRule.waitUntil(5_000) { viewModel.uiState.value.errorMessage != null }
         composeRule.onNodeWithText("Falha ao carregar histórico.").assertIsDisplayed()
         composeRule.onNodeWithText("Nenhuma atividade registrada.").assertDoesNotExist()
+    }
+
+    @Test
+    fun emptyStateComponentDisplaysContentActionAndMeetsMinimumTouchTarget() {
+        var actionClicked = false
+        composeRule.setContent {
+            MaterialTheme {
+                EmptyState(
+                    title = "Nenhum item encontrado",
+                    message = "Cadastre um novo item para começar.",
+                    actionLabel = "Criar item",
+                    onActionClick = { actionClicked = true },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Nenhum item encontrado").assertIsDisplayed()
+        composeRule.onNodeWithText("Cadastre um novo item para começar.").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Ícone de estado vazio").assertIsDisplayed()
+
+        val actionNode = composeRule.onNodeWithText("Criar item")
+        actionNode.assertIsDisplayed()
+        val minimumTargetPx = with(composeRule.density) { 48.dp.toPx() }
+        val bounds = actionNode.fetchSemanticsNode().boundsInRoot
+        assertTrue("EmptyState action width must be >= 48dp", bounds.width >= minimumTargetPx)
+        assertTrue("EmptyState action height must be >= 48dp", bounds.height >= minimumTargetPx)
+
+        actionNode.performClick()
+        composeRule.runOnIdle { assertTrue("EmptyState action callback should be triggered", actionClicked) }
+    }
+
+    @Test
+    fun sectionHeaderDisplaysHierarchyAndActionWithTouchTarget() {
+        var actionClicked = false
+        composeRule.setContent {
+            MaterialTheme {
+                SectionHeader(
+                    title = "Ativos",
+                    subtitle = "Hábitos em andamento",
+                    actionLabel = "Ver tudo",
+                    onActionClick = { actionClicked = true },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Ativos").assertIsDisplayed()
+        composeRule.onNodeWithText("Hábitos em andamento").assertIsDisplayed()
+
+        val actionNode = composeRule.onNodeWithText("Ver tudo")
+        actionNode.assertIsDisplayed()
+        val minimumTargetPx = with(composeRule.density) { 48.dp.toPx() }
+        val bounds = actionNode.fetchSemanticsNode().boundsInRoot
+        assertTrue("SectionHeader action width must be >= 48dp", bounds.width >= minimumTargetPx)
+        assertTrue("SectionHeader action height must be >= 48dp", bounds.height >= minimumTargetPx)
+
+        actionNode.performClick()
+        composeRule.runOnIdle { assertTrue("SectionHeader action callback should be triggered", actionClicked) }
+    }
+
+    @Test
+    fun historyScreenEmptyStateHasNoDirectCreationAction() {
+        val habitRepository = HabitRepositoryImpl(
+            habitDao = database.habitDao(),
+            habitOccurrenceDao = database.habitOccurrenceDao(),
+        )
+        val taskRepository = TaskRepositoryImpl(database.taskDao())
+        val viewModel = HistoryViewModel(
+            GetConsolidatedHistoryUseCase(
+                habitRepository,
+                taskRepository,
+                WorkoutRepositoryImpl(database.workoutDao()),
+                HaircareRepositoryImpl(database.haircareDao()),
+            ),
+        )
+        viewModelStore.put("history-empty-action-check", viewModel)
+        composeRule.setContent {
+            MaterialTheme {
+                HistoryScreen(viewModel)
+            }
+        }
+
+        composeRule.waitUntil(5_000) { !viewModel.uiState.value.isLoading }
+        composeRule.onNodeWithText("Nenhuma atividade registrada.").assertIsDisplayed()
+        composeRule.onAllNodesWithText("Adicionar").assertCountEquals(0)
+        composeRule.onAllNodesWithText("Criar").assertCountEquals(0)
+        composeRule.onAllNodesWithText("Novo").assertCountEquals(0)
     }
 }
