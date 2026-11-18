@@ -6,7 +6,7 @@
 
 Esta decomposição não autoriza implementação enquanto os portões da `docs/specs/README.md` não forem atendidos. Em cada tarefa com código, seguir TDD estrito: executar primeiro teste que falhe pelo comportamento esperado (RED), implementar o mínimo necessário (GREEN), refatorar com testes verdes (REFACTOR). Falha de compilação/configuração/ambiente não conta como RED.
 
-> **Nota de execução:** os relatórios de TASK-04, TASK-08 e TASK-09 registram trabalho anterior. TASK-04 muda de critério para a V1 e exige nova validação. TASK-08 e TASK-09 preservam suas evidências.
+> **Nota de execução:** TASK-04 teve o critério alterado para a grade da V1 e foi revalidada; ver `reports/TASK-04.md`. TASK-08 e TASK-09 preservam as evidências anteriores em seus relatórios.
 
 ## Sumário
 
@@ -15,7 +15,7 @@ Esta decomposição não autoriza implementação enquanto os portões da `docs/
 | `TASK-01` | Criar tokens do tema escuro monocromático | `IMPLEMENTED` | Nenhuma |
 | `TASK-02` | Atualizar navegação principal e acesso ao Histórico interno | `PENDING` | `TASK-01` |
 | `TASK-03` | Padronizar componentes comuns de seção e estado vazio | `VERIFIED` | `TASK-01` |
-| `TASK-04` | Calcular grade de hábitos previstos em sete dias | `PENDING` para a V1 | `TASK-13` |
+| `TASK-04` | Calcular grade de hábitos previstos em sete dias | `VERIFIED` | `TASK-13` |
 | `TASK-05` | Atualizar Home com indicadores e listas acionáveis do dia | `PENDING` | `TASK-02`, `TASK-03`, `TASK-04` |
 | `TASK-06` | Atualizar Hábitos com metas, dias preferidos e ações | `PENDING` | `TASK-01`, `TASK-03`, `TASK-13` |
 | `TASK-07` | Agrupar Tarefas por prazo e integrar o painel de detalhes | `PENDING` | `TASK-01`, `TASK-03`, RF-06 da Spec 10 |
