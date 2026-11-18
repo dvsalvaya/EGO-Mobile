@@ -144,15 +144,15 @@ class HomeScreenTest {
             MaterialTheme { HomeScreen(viewModel = viewModel) }
         }
         composeRule.waitUntil(5_000) { viewModel.uiState.value is HomeUiState.Content }
-        composeRule.onNodeWithText("Novo hÃ¡bito").performClick()
+        composeRule.onNodeWithText("Novo hábito").performClick()
         composeRule.onNodeWithText("Salvar").performClick()
         composeRule.onNodeWithText("Informe um nome.").assertIsDisplayed()
-        composeRule.onNodeWithText("FrequÃªncia").assertIsDisplayed()
+        composeRule.onNodeWithText("Frequência").assertIsDisplayed()
 
         composeRule.onNodeWithText("Nome").performTextInput("M".repeat(81))
         composeRule.onNodeWithText("Salvar").performClick()
-        composeRule.onNodeWithText("Use no maximo 80 caracteres.").assertIsDisplayed()
-        composeRule.onNodeWithText("FrequÃªncia").assertIsDisplayed()
+        composeRule.onNodeWithText("Use no máximo 80 caracteres.").assertIsDisplayed()
+        composeRule.onNodeWithText("Frequência").assertIsDisplayed()
     }
 
     @Test

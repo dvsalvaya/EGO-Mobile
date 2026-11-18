@@ -82,7 +82,7 @@ class HabitsViewModel(
         viewModelScope.launch {
             repository.undoOccurrence(habitId, today().toString()).onFailure { error ->
                 _uiState.value = _uiState.value.copy(
-                    errorMessage = error.message ?: "NÃ£o foi possÃ­vel desfazer a conclusÃ£o.",
+                    errorMessage = error.message ?: "Não foi possível desfazer a conclusão.",
                 )
             }
         }
@@ -115,7 +115,7 @@ class HabitsViewModel(
         viewModelScope.launch {
             repository.archiveHabit(habitId).onFailure { error ->
                 _uiState.value = _uiState.value.copy(
-                    errorMessage = error.message ?: "NÃ£o foi possÃ­vel arquivar o hÃ¡bito.",
+                    errorMessage = error.message ?: "Não foi possível arquivar o hábito.",
                 )
             }
         }
@@ -157,10 +157,10 @@ class HabitsViewModel(
                 )
             }.onSuccess { habit ->
                 runCatching { repository.saveHabit(habit) }.onFailure { error ->
-                    _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "NÃ£o foi possÃ­vel salvar o hÃ¡bito.")
+                    _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Não foi possível salvar o hábito.")
                 }
             }.onFailure { error ->
-                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Verifique os dados do hÃ¡bito.")
+                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Verifique os dados do hábito.")
             }
         }
     }
@@ -176,7 +176,7 @@ class HabitsViewModel(
                 existingOccurrences = occurrences,
             )
             runCatching { repository.updateHabit(result.habit) }.onFailure { error ->
-                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "NÃ£o foi possÃ­vel alterar a frequÃªncia.")
+                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Não foi possível alterar a frequência.")
             }
         }
     }

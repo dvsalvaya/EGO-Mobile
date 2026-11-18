@@ -74,7 +74,7 @@ class HomeViewModel(
     fun onUndoHabit(habitId: Long) {
         viewModelScope.launch {
             habitRepository.undoOccurrence(habitId, today().toString()).onFailure { error ->
-                setError(error.message ?: "NÃ£o foi possÃ­vel desfazer a conclusÃ£o.")
+                setError(error.message ?: "Não foi possível desfazer a conclusão.")
             }
         }
     }

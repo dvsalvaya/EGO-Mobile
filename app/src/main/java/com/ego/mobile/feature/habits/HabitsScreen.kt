@@ -55,7 +55,7 @@ fun HabitsScreen(viewModel: HabitsViewModel = rememberHabitsViewModel()) {
                 uiState.errorMessage?.let { message ->
                     Text(message, Modifier.padding(horizontal = 16.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.error)
                 }
-                if (uiState.isEmpty && !uiState.isLoading) {
+                if (uiState.isEmpty && !uiState.isLoading && uiState.errorMessage == null) {
                     Column(
                         Modifier.fillMaxSize().padding(24.dp),
                         verticalArrangement = Arrangement.Center,

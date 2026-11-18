@@ -32,7 +32,7 @@ class HabitCompletionTransactionTest {
     fun tearDown() = database.close()
 
     @Test
-    fun `concurrent completions cannot exceed weekly target`() = runTest {
+    fun concurrentCompletionsCannotExceedWeeklyTarget() = runTest {
         val dao = database.habitDao()
         val habitId = dao.insert(
             HabitEntity(

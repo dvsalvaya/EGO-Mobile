@@ -5,6 +5,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.room.Room
@@ -43,9 +45,10 @@ class WorkoutRegressionTest {
     @Test
     fun selectedDestinationSurvivesActivityRecreation() {
         listOf("Início", "Hábitos", "Tarefas", "Rotinas", "Histórico").forEach { destination ->
-            composeRule.onNodeWithText(destination).performClick()
+            val tab = hasText(destination) and hasClickAction()
+            composeRule.onNode(tab).performClick()
             composeRule.activityRule.scenario.recreate()
-            composeRule.onNodeWithText(destination).assertIsSelected()
+            composeRule.onNode(tab).assertIsSelected()
         }
     }
 
