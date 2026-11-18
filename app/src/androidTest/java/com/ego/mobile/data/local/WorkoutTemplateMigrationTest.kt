@@ -1,31 +1,36 @@
 package com.ego.mobile.data.local
 
-import androidx.room.testing.MigrationTestHelper
+import android.database.sqlite.SQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import org.json.JSONArray
+import org.json.JSONObject
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class WorkoutTemplateMigrationTest {
 
-    @get:Rule
-    val helper = MigrationTestHelper(
-        InstrumentationRegistry.getInstrumentation(),
-        EgoDatabase::class.java,
-    )
+    private val instrumentation = InstrumentationRegistry.getInstrumentation()
+    private val context = instrumentation.targetContext
+
+    @After
+    fun cleanUp() {
+        EgoDatabaseProvider.resetForTesting()
+        context.deleteDatabase(DATABASE_NAME)
+    }
 
     @Test
     fun migratesFromVersionFivePreservingSessionsAndExercises() {
-        val database = helper.createDatabase(DATABASE_NAME, 5)
-        insertLegacyData(database)
-        database.close()
+        createLegacyDatabase(5) { database ->
+            insertLegacyData(database)
+        }
 
-        val migrated = helper.runMigrationsAndValidate(DATABASE_NAME, 6, false, MIGRATION_5_6)
+        val migrated = openWithRoom()
 
         migrated.query("SELECT title, status FROM workout_sessions WHERE id = 1").use { cursor ->
             assertTrue(cursor.moveToFirst())
@@ -61,19 +66,18 @@ class WorkoutTemplateMigrationTest {
             assertEquals(0, cursor.getInt(1))
             assertEquals(4, cursor.getInt(2))
         }
-        migrated.close()
     }
 
     @Test
     fun migratesVersionSixAndPreservesLegacySessionDurationData() {
-        val database = helper.createDatabase("workout_pause_migration_test.db", 6)
-        database.execSQL(
-            "INSERT INTO workout_sessions (id, title, startedAt, endedAt, status, notes) " +
-                "VALUES (8, 'Treino legado', 1000, 9000, 'COMPLETED', 'nota')",
-        )
-        database.close()
+        createLegacyDatabase(6) { database ->
+            database.execSQL(
+                "INSERT INTO workout_sessions (id, title, startedAt, endedAt, status, notes) " +
+                    "VALUES (8, 'Treino legado', 1000, 9000, 'COMPLETED', 'nota')",
+            )
+        }
 
-        val migrated = helper.runMigrationsAndValidate("workout_pause_migration_test.db", 7, false, MIGRATION_6_7)
+        val migrated = openWithRoom()
         migrated.query(
             "SELECT title, startedAt, endedAt, status, notes, pausedAt, pausedDurationMillis " +
                 "FROM workout_sessions WHERE id = 8",
@@ -87,10 +91,40 @@ class WorkoutTemplateMigrationTest {
             assertTrue(cursor.isNull(5))
             assertEquals(0L, cursor.getLong(6))
         }
-        migrated.close()
     }
 
-    private fun insertLegacyData(database: SupportSQLiteDatabase) {
+    private fun createLegacyDatabase(version: Int, seed: (SQLiteDatabase) -> Unit) {
+        EgoDatabaseProvider.resetForTesting()
+        context.deleteDatabase(DATABASE_NAME)
+        val schemaPath = "${EgoDatabase::class.java.canonicalName}/$version.json"
+        val schema = instrumentation.context.assets.open(schemaPath).bufferedReader().use {
+            JSONObject(it.readText()).getJSONObject("database")
+        }
+        context.openOrCreateDatabase(DATABASE_NAME, 0, null).use { database ->
+            val entities = schema.getJSONArray("entities")
+            for (i in 0 until entities.length()) {
+                val entity = entities.getJSONObject(i)
+                val tableName = entity.getString("tableName")
+                database.execSQL(entity.getString("createSql").replace("\${TABLE_NAME}", tableName))
+                val indices = entity.optJSONArray("indices") ?: JSONArray()
+                for (j in 0 until indices.length()) {
+                    val sql = indices.getJSONObject(j).getString("createSql")
+                    database.execSQL(sql.replace("\${TABLE_NAME}", tableName))
+                }
+            }
+            val queries = schema.getJSONArray("setupQueries")
+            for (i in 0 until queries.length()) {
+                database.execSQL(queries.getString(i))
+            }
+            seed(database)
+            database.version = version
+        }
+    }
+
+    private fun openWithRoom(): SupportSQLiteDatabase =
+        EgoDatabaseProvider.getDatabase(context, DATABASE_NAME).openHelper.writableDatabase
+
+    private fun insertLegacyData(database: SQLiteDatabase) {
         database.execSQL(
             "INSERT INTO workout_sessions (id, title, startedAt, endedAt, status, notes) " +
                 "VALUES (1, 'Treino antigo', 1000, 5000, 'COMPLETED', NULL)",
