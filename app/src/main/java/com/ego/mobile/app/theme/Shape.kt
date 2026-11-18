@@ -1,5 +1,7 @@
 package com.ego.mobile.app.theme
 
+import androidx.compose.ui.unit.dp
+
 // Formas e raios
 object Shape {
     val control = 12.dp // controles/elementos compactos

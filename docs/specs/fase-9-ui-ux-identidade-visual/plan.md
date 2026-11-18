@@ -2,12 +2,12 @@
 
 - **Feature ID:** `fase-9-ui-ux-identidade-visual`
 - **Especificação:** `docs/specs/fase-9-ui-ux-identidade-visual/spec.md` (Status: `DRAFT`)
-- **Tarefas:** `docs/specs/fase-9-ui-ux-identidade-visual/tasks.md` (todas `PENDING`)
+- **Tarefas:** [lista e evidências](tasks.md).
 - **Decisão técnica:** Pendente de revisão/aprovação; não iniciar implementação antes dos portões da documentação do projeto.
 
 ## 1. Objetivo da fase
 
-Aplicar sistema visual escuro monocromático compartilhado, ajustar destinos principais para Início/Hábitos/Tarefas/Treinos/Cabelo, modernizar apresentação das cinco áreas e acrescentar os comportamentos visuais aprovados (consistência, modelos/estatísticas de treino e calendário mensal capilar), sem reescrever a arquitetura de negócio existente.
+Entregar primeiro a V1 de Início, Hábitos e Histórico de hábitos sobre a base estabilizada da Spec 10. Completar depois os redesenhos de Tarefas, Treinos e Cabelo.
 
 ## 2. Contexto técnico e diagnóstico
 
@@ -15,12 +15,12 @@ Aplicar sistema visual escuro monocromático compartilhado, ajustar destinos pri
 - Estado e fluxo: Composable → ViewModel (`StateFlow`) → Repository → Room/Flow; DI manual.
 - `EgoApp` usa apenas `darkColorScheme()` padrão; cores, padding e shapes são locais. Não existe pacote `core/ui` no código atual.
 - Navegação própria em `AppNavigation.kt`, `AppDestination.kt` e `NavigationState.kt`; `NavigationBar` já está fixa no `Scaffold`. Navigation Compose não está no catálogo.
-- Hábitos/Tarefas/Home/Histórico e componentes de Treinos/Cabelo estão funcionais. Reutilizar repositórios e regras existentes, não duplicar estado persistido em UI.
+- Recuperar e validar o build da Spec 10 antes de integrar a V1. Reutilizar repositórios e estado persistido nos fluxos atuais.
 - `HabitFormDialog` e `TaskFormDialog` são usados para criação; a tela de Hábitos não expõe edição apesar do ciclo de domínio aprovado.
-- `TasksViewModel` atual classifica por `Task.isOverdue(now)`, que é `dueAt < now`; o DatePicker grava o começo do dia local. Decisão do responsável: preservar esse comportamento da Fase 4, documentando os efeitos sem alterar o critério.
-- `EgoDatabase` está na versão 5 e tem migrations 1→2→3→4→5. Templates de treino serão novos registros locais e exigem migration sequencial 5→6.
+- RF-06 da Spec 10 define atraso pelo dia civil do prazo em America/Sao_Paulo. Consumir essa regra na Home e em Tarefas.
+- A árvore já contém Room 6 e migration 5→6 para modelos de treino. Conferir a versão após a Spec 10 antes de planejar novas migrações.
 - `HaircareViewModel` já observa rotina, ocorrências futuras e histórico; o calendário pode derivar a grade a partir dessas ocorrências, filtrando por mês/data sem persistência duplicada.
-- `HistoryItem` contém data, tipo, título, subtítulo e status, mas não ID de origem. A grade de consistência exige chave estável `(tipo, sourceId)` para não contar uma atividade exibida em telas diferentes mais de uma vez.
+- A timeline consolidada segue disponível. O Histórico de hábitos precisa identificar registros por hábito/data ou hábito/semana para abrir e corrigir o período.
 
 ## 3. Estratégia técnica
 
@@ -38,10 +38,10 @@ Aplicar sistema visual escuro monocromático compartilhado, ajustar destinos pri
 
 ### Dados e domínio
 
-- Home: acrescentar um agregador testável para sete datas locais, usando ocorrências concluídas de hábitos, tarefa por ID/`completedAt` e sessão por ID/`endedAt`. Expor identidade tipada da origem, sem usar o número de ID isoladamente entre tabelas.
-- Hábitos: expor edição e progresso com APIs existentes de ocorrências; preservar frequência/histórico e idempotência por hábito/data.
-- Tarefas: derivar agrupamentos da lista observada e do relógio já injetado em `TasksViewModel`; classificação mantém `Task.isOverdue(now)` sem conversão para comparação civil.
-- Templates: criar modelos e tabelas de template/exercícios independentes de sessão, DAO/repositório e migration Room 5→6. A seleção instancia exercícios em sessão nova; não altera o modelo.
+- Home: derivar a grade de sete dias de previsões e conclusões canônicas por hábito/data. Guardar o nome editável em preferência local. Usar fonte de tempo do produto para saudação e viradas de data.
+- Hábitos e Histórico: compartilhar elegibilidade, fechamento civil e correção retroativa. Preservar o plano vigente em datas passadas e registrar fechamentos ainda que o app tenha ficado fechado, de forma idempotente. Evitar gerar retrospectivamente previsões que o banco não permite reconstruir.
+- Tarefas: reutilizar a classificação por data civil de RF-06, com atualização na virada do dia.
+- Templates: reutilizar entidades, repositório e migration 5→6 da implementação já registrada. Validar em dispositivo ao integrar a tela.
 - Estatísticas: derivar contagem de sessões concluídas/duração média e maior carga positiva por exercício/sessão; não interpretar `reps` textual.
 - Calendário: estender o estado/ViewModel capilar com mês e dia selecionados. Filtrar `HaircareOccurrence` existente; registrar/reagendar pelas operações atuais.
 
@@ -61,7 +61,7 @@ Aplicar sistema visual escuro monocromático compartilhado, ajustar destinos pri
 
 - `core/ui/theme/*` e, se justificado, componente compartilhado em `feature/common/`.
 - Rotas/callbacks de navegação; a tela de Histórico deixa de ser item inferior.
-- `HomeSummary`/modelo de evento canônico e agregador de consistência com teste de domínio.
+- `HomeSummary`, projeção de previsões e conclusões por data, leitura e edição do nome local.
 - Bottom Sheet de detalhes de tarefa; Bottom Sheets de criação/edição para formulários afetados.
 - Modelo/entidades/DAO/repositório de `WorkoutTemplate` e exercícios do modelo, mapper e migration 5→6.
 - Modelo/UseCase/UI state para estatísticas de treino.
@@ -90,15 +90,11 @@ Os caminhos são alvos prováveis, a confirmar com os componentes existentes ao 
 
 ## 6. Sequência e dependências
 
-1. `TASK-01` tokens de tema. Base visual.
-2. `TASK-02` navegação; `TASK-03` componentes comuns; `TASK-04` agregador de consistência podem avançar após suas dependências declaradas. `TASK-08` templates e `TASK-09` estatísticas são trilhas de domínio/dados independentes.
-3. `TASK-05` Home depende de navegação, componentes e modelo de consistência.
-4. `TASK-06` Hábitos e `TASK-07` Tarefas dependem de tokens/estado vazio; preservar contratos atuais.
-5. `TASK-10` Treinos depende de navegação, componentes, persistência de templates e estatísticas.
-6. `TASK-11` Cabelo depende de navegação e componentes comuns.
-7. `TASK-12` executa verificação integrada, regressão, acessibilidade e adaptação de tela.
-
-Dependências reais estão detalhadas por ID em `tasks.md`; independências não devem ser serializadas sem razão.
+1. Recuperar o build e estabilizar as regras reaproveitadas da Spec 10, incluindo RF-06 e a meta semanal por contagem.
+2. Preparar tema, navegação e componentes comuns (TASK-01 a TASK-03).
+3. Implementar preferências, fechamento de períodos e correções históricas (TASK-13). Atualizar a grade (TASK-04), a Home (TASK-05) e a aba Hábitos (TASK-06).
+4. Validar a V1 em TASK-14. Repetir os fluxos estabilizados atingidos pela mudança de UI.
+5. Entregar os redesenhos de Tarefas, Treinos e Cabelo em TASK-07, TASK-10 e TASK-11. Reaproveitar TASK-08 e TASK-09 conforme a evidência disponível. Executar a regressão completa em TASK-12.
 
 ## 7. TDD e validação planejada
 
@@ -119,8 +115,8 @@ Falha de emulador/configuração/build não será registrada como teste comporta
 | Risco | Mitigação |
 |---|---|
 | Migration dos templates danificar registros antigos | Teste instrumentado de migration a partir da versão 5 com sessão/exercícios reais, verificar estado após versão 6 |
-| Contagem duplicada de atividade na grade | Chave composta por tipo e ID de origem; testes com os mesmos dados projetados em várias telas |
-| Divergência de `dueAt < now` e data civil | Preservar classificação Fase 4 por decisão explícita; incluir teste no limite e não migrar prazos |
+| Projeção histórica muda ao editar um hábito | Preservar previsões por hábito/data e a vigência da configuração. Testar edição em meio à semana e correção retroativa. |
+| Home e Tarefas divergem sobre prazos | Usar RF-06 da Spec 10 e testar virada de data nas duas telas. |
 | Perda de sessão ao reestruturar navegação | ViewModel/repositório continuam fonte de verdade persistida; teste alternar destinos e retomar sessão |
 | Crescimento de escopo visual (cards em todas as telas) | Cards grandes prioritários na Home; componentes internos compactos e semânticos |
 | Tamanho de calendário e barra inferior em telefone compacto | Alvos mínimos, calendário full-width, teste instrumentado em 360 dp e rolagem vertical |
@@ -129,7 +125,7 @@ Falha de emulador/configuração/build não será registrada como teste comporta
 
 ## 9. Critérios de conclusão da fase
 
-- `AC-01`–`AC-16` da especificação aprovados por evidência.
+- `AC-01`–`AC-18` da especificação aprovados por evidência.
 - Todas as tarefas em `VERIFIED` com relatórios rastreáveis e testes executados.
 - Build e suítes apropriadas concluídas com sucesso; limitações não são tratadas como aprovação.
 - Nenhum fluxo existente de hábitos/tarefas/treinos/cabelo/histórico removido.

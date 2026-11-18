@@ -2,11 +2,12 @@
 
 ## 1. Objetivo do plano
 
-Implementar os 14 bugs confirmados no `FIX.md`, com mudanças pequenas, rastreáveis e cobertas por testes. O plano prioriza estabilidade e integridade dos dados antes de completar os fluxos de hábitos.
+Recuperar a compilação, revalidar os achados do `FIX.md` e corrigir os problemas funcionais ainda presentes. A implementação da nova UI parte do build estabilizado.
 
-**Decisões de produto já definidas:**
+**Regras e decisões a registrar**
 - Frequência `N vezes por semana`: qualquer `N` dias, sem dias fixos; o progresso é contado dentro da semana ISO (segunda a domingo).
-- Escopo: todos os BUG-001 a BUG-014.
+- Prazo de tarefa: comparar datas civis em America/Sao_Paulo, conforme RF-06 e AC-07 da Spec 9.
+- Seleção visual de frequência e legibilidade do rótulo semanal: levar RF-09 e RF-13 para a tarefa de Hábitos da Spec 9.
 - SUS-001 a SUS-008: fora desta Spec; serão investigados separadamente.
 
 ## 2. Princípios de implementação
@@ -30,10 +31,11 @@ Atividades:
 - Ler as Specs relevantes (principalmente Specs 3, 4, 7 e 9) e os arquivos indicados no `FIX.md`.
 - Confirmar como os testes são organizados e quais comandos instrumentados estão disponíveis.
 - Executar `test`, `lint` e `assembleDebug` para registrar baseline.
-- Reproduzir BUG-001 e registrar evidência do crash, se o ambiente permitir.
+- Corrigir `:app:compileDebugKotlin` (RF-00) e recompilar até gerar um APK debug. Registrar os resultados de lint e dos testes separadamente.
+- Revalidar os achados no novo baseline. Registrar quais continuam presentes, quais já estão atendidos e quais precisam de validação em dispositivo.
 
 Saída:
-- Baseline documentado.
+- APK debug gerado e baseline documentado.
 - Lista dos arquivos e contratos existentes que serão afetados.
 
 ### Fase 1 — Estabilidade P0/P1
@@ -60,13 +62,13 @@ Gate:
 **Objetivo:** corrigir dados calculados incorretamente.
 
 1. **BUG-005 — Duração de treino:** definir representação persistível de pausa (por exemplo, `pausedAt` e duração pausada acumulada, ou modelo equivalente). Avaliar compatibilidade com sessões existentes e defaults para registros antigos. Garantir que o cálculo seja determinístico e testável com relógio controlado.
-2. **BUG-006 — Atraso de tarefa:** comparar datas civis no fuso definido pelo projeto. Evitar comparar diretamente um `dueAt` normalizado para meia-noite com o timestamp atual.
+2. **RF-06 — Atraso de tarefa:** aplicar a regra por data civil e validar a mesma classificação na Home e em Tarefas.
 3. **BUG-007 — Frequência semanal:** substituir a regra baseada em `dayOfWeek <= count` por contagem de ocorrências concluídas na semana ISO atual. Criar uma única regra de domínio reutilizável por Home, Hábitos e estatísticas.
 
 Testes:
 - Treino ativo, pausado, retomado e com pausas múltiplas; sessão recuperada após morte do processo.
-- Tarefa vencendo hoje, ontem e amanhã, incluindo virada de dia.
-- Frequência `1x`, `3x` e outros valores suportados: 0/N, N-1/N, N/N; conclusão em dias quaisquer; troca de semana; desfazer ocorrência.
+- Tarefa vencendo hoje, ontem e amanhã, incluindo virada de dia e prazo ausente.
+- Frequência `1x`, `3x` e outros valores suportados, incluindo troca de semana, registro retroativo, concorrência pelo último registro elegível e desfazer ocorrência.
 - Garantir que ocorrências antigas continuem no histórico.
 
 Gate:
@@ -78,13 +80,11 @@ Gate:
 **Objetivo:** corrigir feedback e ações já esperadas pelo módulo.
 
 1. **BUG-008:** estado de erro inline para nome vazio/whitespace.
-2. **BUG-009:** aplicar `selected` ao componente de escolha de frequência e expor estado semântico.
-3. **BUG-010:** fornecer ao cartão o estado/progresso de conclusão correspondente ao período; implementar desfazer com atualização imediata e sem duplicação.
-4. **BUG-011:** reorganizar as ações do cartão para que conclusão rápida e pausa coexistam; exibir retomar para hábitos pausados.
+2. **BUG-010:** fornecer à tela o estado/progresso do período e implementar desfazer com atualização imediata e sem duplicação.
+3. **BUG-011:** disponibilizar conclusão rápida e pausa no fluxo de hábitos ativos e retomar no fluxo de pausados.
 
 Testes:
 - Estados de erro e recuperação do campo.
-- Seleção visual e valor persistido.
 - Conclusão/desfazer em hábitos diários e semanais.
 - Pausar/retomar e verificar listas, estado e persistência.
 
@@ -92,13 +92,12 @@ Gate:
 - Nenhuma ação essencial fica inacessível.
 - O estado mostrado na UI corresponde ao estado persistido.
 
-### Fase 4 — Navegação, layout e funcionalidades ausentes
+### Fase 4 — Navegação e funcionalidades ausentes
 
 **Objetivo:** restaurar estado de navegação e completar o escopo declarado na Spec 3.
 
 1. **BUG-012:** salvar/restaurar a aba atual pelo mecanismo de estado salvo do Compose/Android, respeitando a implementação de navegação existente.
-2. **BUG-013:** corrigir largura, quebra de linha e dimensionamento do chip `3x/sem`.
-3. **BUG-014:** implementar:
+2. **BUG-014:** implementar:
    - edição de nome/descrição;
    - ação de arquivar;
    - alteração de frequência com diálogo de confirmação;
@@ -108,8 +107,7 @@ Gate:
 A implementação deve reutilizar componentes e casos de uso existentes quando isso não gerar acoplamento inadequado. Conectar `onUpdateFrequency` se o contrato existente for adequado; caso contrário, ajustar o contrato e os testes em vez de criar caminho paralelo.
 
 Testes:
-- Rotação em cada aba.
-- Chip em larguras e fontes suportadas.
+- Rotação em cada destino efetivamente disponível.
 - Editar e cancelar edição.
 - Alterar frequência, confirmar e cancelar.
 - Arquivar hábito ativo e pausado; verificar que não pode ser concluído e que o histórico permanece.
@@ -125,10 +123,11 @@ Atividades:
 - Executar suíte unitária completa.
 - Executar lint e assembleDebug.
 - Executar testes instrumentados disponíveis.
-- Repetir os 12 cenários mínimos de regressão da Spec.
+- Executar os cenários aplicáveis de regressão da Spec 10 no build estabilizado.
 - Verificar persistência após force-stop e reabertura.
 - Se houver mudança no schema Room, testar migração de banco existente.
 - Gerar relatório de implementação com evidências.
+- Registrar para a integração da Spec 9 (TASK-12) a repetição dos cenários nas telas novas, com foco em Hábitos, Treinos e restauração de navegação.
 
 Gate final:
 - Todos os critérios da Spec atendidos.
@@ -165,7 +164,7 @@ Não usar o número do dia da semana como substituto da contagem. Não criar dia
 
 ### 4.5 Persistência e compatibilidade
 
-Antes de adicionar campos ao Room, verificar entidades, DAOs, versões e migrações existentes. Para sessões antigas, definir defaults compatíveis que não alterem indevidamente durações históricas. Não investigar ou alterar a estratégia `REPLACE`/`CASCADE` associada a SUS-001 nesta Spec, salvo se uma correção dos 14 bugs demonstrar dependência direta; nesse caso, documentar a dependência e limitar a mudança ao necessário.
+O Room está na versão 6 na árvore revisada. Se a pausa exigir alteração de schema, adicionar a migração 6→7 e verificar também a cadeia 5→6→7. Preservar treinos, exercícios, modelos e demais dados existentes. Usar o cálculo de duração no histórico e nas estatísticas, com defaults compatíveis para sessões antigas sem dados de pausa.
 
 ## 5. Dependências e riscos
 
@@ -188,7 +187,7 @@ Manter commits pequenos e agrupados por comportamento, por exemplo:
 2. `fix(habits): validate habit input safely`
 3. `build(android): enable core library desugaring`
 4. `fix(workouts): exclude paused time from duration`
-5. `fix(tasks): treat due-today tasks as not overdue`
+5. `fix(tasks): align overdue classification with due dates`
 6. `fix(habits): calculate weekly frequency by completion count`
 7. `fix(habits): expose validation and completion states`
 8. `fix(habits): make pause and resume actions reachable`
@@ -200,7 +199,8 @@ Os commits são sugestões; seguir o padrão real do repositório se for diferen
 
 ## 7. Definição de pronto
 
-- [ ] Todos os 14 bugs corrigidos.
+- [ ] APK gerado e requisitos aplicáveis revalidados ou corrigidos.
+- [ ] RF-06 validado e critérios de RF-09/RF-13 encaminhados para a Spec 9.
 - [ ] Testes de regressão adicionados para cada regra corrigida.
 - [ ] `gradlew test` aprovado.
 - [ ] `gradlew lint` aprovado.
