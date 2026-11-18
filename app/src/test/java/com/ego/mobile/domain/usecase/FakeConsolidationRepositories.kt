@@ -1,6 +1,9 @@
 package com.ego.mobile.domain.usecase
 
 import com.ego.mobile.domain.model.Habit
+import com.ego.mobile.domain.model.HabitCalendar
+import com.ego.mobile.domain.usecase.observeHabitOccurrenceSnapshot
+import java.time.LocalDate
 import com.ego.mobile.domain.model.HabitOccurrence
 import com.ego.mobile.domain.model.HaircareOccurrence
 import com.ego.mobile.domain.model.HaircareRoutine
@@ -25,6 +28,13 @@ internal class FakeConsolidationHabitRepository : HabitRepository {
     fun setOccurrences(habitId: Long, values: List<HabitOccurrence>) {
         occurrences.getOrPut(habitId) { MutableStateFlow(emptyList()) }.value = values
     }
+
+    override fun observeHabitCalendars(): Flow<List<HabitCalendar>> = observeHabitOccurrenceSnapshot().map { snapshot ->
+        snapshot.habits.map { HabitCalendar(it, emptyList(), snapshot.occurrencesByHabit[it.id].orEmpty()) }
+    }
+
+    override suspend fun correctOccurrence(habitId: Long, date: LocalDate, completed: Boolean): Result<Unit> =
+        error("Not used in these tests")
 
     override suspend fun saveHabit(habit: Habit): Long = error("Not used by consolidation tests")
     override suspend fun updateHabit(habit: Habit) = error("Not used by consolidation tests")

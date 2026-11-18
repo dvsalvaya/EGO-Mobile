@@ -53,6 +53,7 @@ class HistoryScreenTest {
                 WorkoutRepositoryImpl(database.workoutDao()),
                 HaircareRepositoryImpl(database.haircareDao()),
             ),
+            habitRepository,
         )
         runBlocking {
             val now = System.currentTimeMillis()
@@ -83,6 +84,20 @@ class HistoryScreenTest {
     @After
     fun tearDown() {
         database.close()
+    }
+
+    @Test
+    fun correctsTheDisplayedDayInBothDirections() {
+        composeRule.setContent { MaterialTheme { HistoryScreen(viewModel) } }
+        composeRule.waitUntil(5_000) { viewModel.uiState.value.items.any { it.title == "Meditar" } }
+        composeRule.onNodeWithText("Hábitos").performClick()
+        composeRule.onNodeWithText("Ver registro").performClick()
+        composeRule.onNodeWithText("Não fiz").performClick()
+        composeRule.waitUntil(5_000) { viewModel.uiState.value.visibleItems.singleOrNull()?.status == "Não fiz" }
+        composeRule.onNodeWithText("Fiz nesse dia").performClick()
+        composeRule.waitUntil(5_000) { viewModel.uiState.value.visibleItems.singleOrNull()?.status == "COMPLETED" }
+        composeRule.onNodeWithText("Fechar").performClick()
+        composeRule.onNodeWithText("Concluído").assertIsDisplayed()
     }
 
     @Test

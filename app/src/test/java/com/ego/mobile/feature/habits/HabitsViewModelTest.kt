@@ -1,6 +1,9 @@
 package com.ego.mobile.feature.habits
 
 import com.ego.mobile.domain.model.Habit
+import com.ego.mobile.domain.model.HabitCalendar
+import com.ego.mobile.domain.usecase.observeHabitOccurrenceSnapshot
+import java.time.LocalDate
 import com.ego.mobile.domain.model.HabitFrequency
 import com.ego.mobile.domain.model.HabitOccurrence
 import com.ego.mobile.domain.model.HabitStatus
@@ -8,6 +11,7 @@ import com.ego.mobile.domain.repository.HabitRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -26,6 +30,13 @@ import org.junit.Test
 class FakeHabitRepository : HabitRepository {
     private val habitsFlow = MutableStateFlow<List<Habit>>(emptyList())
     private val internalHabits = mutableListOf<Habit>()
+
+    override fun observeHabitCalendars(): Flow<List<HabitCalendar>> = observeHabitOccurrenceSnapshot().map { snapshot ->
+        snapshot.habits.map { HabitCalendar(it, emptyList(), snapshot.occurrencesByHabit[it.id].orEmpty()) }
+    }
+
+    override suspend fun correctOccurrence(habitId: Long, date: LocalDate, completed: Boolean): Result<Unit> =
+        error("Not used in these tests")
 
     override suspend fun saveHabit(habit: Habit): Long {
         val nextId = if (internalHabits.isEmpty()) 1L else internalHabits.maxOf { it.id } + 1L

@@ -152,11 +152,13 @@ class HistoryViewModelTest {
     }
 
     private fun createViewModel() = HistoryViewModel(
+        habitRepository = habits,
         getConsolidatedHistoryUseCase = GetConsolidatedHistoryUseCase(
             habitRepository = habits,
             taskRepository = tasks,
             workoutRepository = workouts,
             haircareRepository = haircare,
+            dates = kotlinx.coroutines.flow.flowOf(LocalDate.of(2026, 11, 18)),
         ),
     ).also { viewModelStore.put("history", it) }
 }

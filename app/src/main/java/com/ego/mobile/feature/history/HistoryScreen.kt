@@ -90,7 +90,7 @@ fun HistoryScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             items(uiState.visibleItems) { item ->
-                                HistoryTimelineItem(item = item)
+                                HistoryTimelineItem(item = item, onCorrect = viewModel::correctOccurrence)
                             }
                         }
                     }

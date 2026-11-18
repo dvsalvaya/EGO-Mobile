@@ -10,6 +10,10 @@ import com.ego.mobile.data.repository.HabitRepositoryImpl
 import com.ego.mobile.data.repository.HaircareRepositoryImpl
 import com.ego.mobile.data.repository.TaskRepositoryImpl
 import com.ego.mobile.data.repository.WorkoutRepositoryImpl
+import com.ego.mobile.domain.repository.HabitRepository
+import java.time.LocalDate
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 import com.ego.mobile.domain.model.ActivityType
 import com.ego.mobile.domain.usecase.GetConsolidatedHistoryUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +27,7 @@ import kotlinx.coroutines.flow.onStart
 
 class HistoryViewModel(
     getConsolidatedHistoryUseCase: GetConsolidatedHistoryUseCase,
+    private val habitRepository: HabitRepository,
 ) : ViewModel() {
     private val selectedFilter = MutableStateFlow<ActivityType?>(null)
     private val _uiState = MutableStateFlow(HistoryUiState())
@@ -47,6 +52,18 @@ class HistoryViewModel(
             .launchIn(viewModelScope)
     }
 
+    fun correctOccurrence(habitId: Long, date: LocalDate, completed: Boolean) {
+        viewModelScope.launch {
+            try {
+                habitRepository.correctOccurrence(habitId, date, completed).getOrThrow()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Não foi possível corrigir o registro.")
+            }
+        }
+    }
+
     fun setFilter(type: ActivityType?) {
         selectedFilter.value = type
     }
@@ -69,6 +86,7 @@ fun rememberHistoryViewModel(): HistoryViewModel {
         val workoutRepository = WorkoutRepositoryImpl(database.workoutDao())
         val haircareRepository = HaircareRepositoryImpl(database.haircareDao())
         HistoryViewModel(
+            habitRepository = habitRepository,
             getConsolidatedHistoryUseCase = GetConsolidatedHistoryUseCase(
                 habitRepository = habitRepository,
                 taskRepository = taskRepository,

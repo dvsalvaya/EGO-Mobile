@@ -103,6 +103,7 @@ class HomeHistoryConsistencyTest {
                 workoutRepository = workoutRepository,
                 haircareRepository = haircareRepository,
             ),
+            habitRepository,
         ).also { viewModelStore.put("history", it) }
         val habitsViewModel = HabitsViewModel(habitRepository)
             .also { viewModelStore.put("habits", it) }

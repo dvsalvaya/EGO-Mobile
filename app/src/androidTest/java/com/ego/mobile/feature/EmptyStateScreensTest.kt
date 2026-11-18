@@ -247,6 +247,7 @@ class EmptyStateScreensTest {
                 WorkoutRepositoryImpl(database.workoutDao()),
                 HaircareRepositoryImpl(database.haircareDao()),
             ),
+            habitRepository,
         )
         viewModelStore.put("history-empty", viewModel)
         composeRule.setContent {
@@ -266,7 +267,7 @@ class EmptyStateScreensTest {
             habitOccurrenceDao = database.habitOccurrenceDao(),
         )
         val failingHabitRepository = object : HabitRepository by habitRepository {
-            override fun observeAllHabits(): Flow<List<Habit>> = flow {
+            override fun observeHabitCalendars(): Flow<List<com.ego.mobile.domain.model.HabitCalendar>> = flow {
                 throw IllegalStateException("Falha ao carregar histórico.")
             }
         }
@@ -277,6 +278,7 @@ class EmptyStateScreensTest {
                 WorkoutRepositoryImpl(database.workoutDao()),
                 HaircareRepositoryImpl(database.haircareDao()),
             ),
+            habitRepository,
         )
         viewModelStore.put("history-error", viewModel)
         composeRule.setContent {
