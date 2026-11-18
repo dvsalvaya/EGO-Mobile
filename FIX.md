@@ -1,4 +1,19 @@
-# FIX.md — Relatório de QA (auditoria Specs 1–8)
+# FIX.md — Relatório de QA (auditoria histórica das Specs 1–8)
+
+> **Revisão em 18/11/2026:** este arquivo registra uma auditoria feita em 14–16/11/2026 no commit `7aa20d4`; não deve ser lido como retrato validado do estado atual. A especificação da Fase 9 ainda está em `DRAFT`, e as tarefas 04, 08 e 09 foram executadas parcialmente depois daquela auditoria. Na árvore atual, `.\gradlew.bat testDebugUnitTest assembleDebug` falha em `:app:compileDebugKotlin` com erros de compilação em navegação, tema e telas; portanto, não foi possível validar os fluxos de UI atuais em execução.
+
+## Situação na revisão atual
+
+| Item | Situação atual | Observação |
+|---|---|---|
+| BUG-001–BUG-003, BUG-005, BUG-008–BUG-014 | **Achados históricos, não revalidados** | A auditoria original tem evidências no commit e ambiente indicados acima. Como a compilação atual falha, não afirmar que esses comportamentos ainda reproduzem ou foram corrigidos sem nova validação. |
+| BUG-004 (`java.time` / `minSdk 24`) | **Ainda plausível por inspeção** | `minSdk` continua 24 e `coreLibraryDesugaring` não aparece em `app/build.gradle.kts`; lint e execução em API 24/25 precisam ser revalidados após corrigir a compilação. |
+| BUG-007 (`3x por semana`) | **Ainda plausível por inspeção** | `HabitFrequency.TimesPerWeek.requiresOccurrenceOn` ainda limita a ocorrência aos primeiros dias ISO da semana; conferir a regra de frequência antes de alterar. |
+| BUG-006 (prazo hoje já atrasado) | **Remover da lista de bugs** | A proposta da Fase 9 preserva `Task.isOverdue(now)` como `dueAt < agora`, inclusive para prazo salvo no início do dia. A seção 8.3 e o critério AC-07 da `docs/specs/fase-9-ui-ux-identidade-visual/spec.md` tratam esse resultado como intencional. Como a proposta está em `DRAFT`, não é uma aprovação formal da fase; ainda assim, o comportamento está explicitado na especificação e nas tarefas atuais. Não mudar a regra sem revisão do produto. |
+| Navegação e tema da Fase 9 | **Divergência atual confirmada por inspeção** | `AppNavigation.kt` ainda mantém cinco itens com Histórico fora da barra, mas renderiza iniciais invisíveis em vez de ícones; `EgoApp.kt` ainda aplica `darkColorScheme()` sem tokens explícitos. Além da divergência visual, há erros de compilação nesses arquivos. |
+| Suíte e build atuais | **Falham** | A execução da revisão parou em `compileDebugKotlin`; tarefas de teste/build não chegaram a validar o app. Consulte a saída do Gradle desta revisão antes de usar os resultados históricos abaixo. |
+
+As seções seguintes preservam o registro e as evidências da auditoria original. Prioridades, contagens, testes aprovados/não realizados e ordem de correção referem-se exclusivamente ao snapshot de 14–16/11/2026. Não use a ordem antiga como backlog atualizado sem conferir a especificação vigente.
 
 ## 1. Resumo
 
@@ -105,7 +120,9 @@
 
 ---
 
-### BUG-006 — Tarefa com prazo "hoje" nasce marcada como Atrasada
+### BUG-006 — (Histórico) Tarefa com prazo "hoje" nasce marcada como Atrasada
+
+> **Reclassificado em 18/11/2026:** este achado não é um bug segundo a regra registrada na proposta da Fase 9: `dueAt < agora` é mantido, mesmo quando a data civil escolhida é hoje. Veja a situação atual no início deste arquivo. A sugestão de mudar para comparação por dia civil está obsoleta e não deve ser aplicada sem revisão explícita do produto.
 
 - **Prioridade:** P2
 - **Categoria:** Lógica de datas / Dados incorretos

@@ -1,21 +1,23 @@
 package com.ego.mobile.app.theme
 
+import androidx.compose.ui.graphics.Color
+
 // Design tokens for Spec 9 — Monocromático Escuro
 object Colors {
     // Paleta principal
-    val background = android.graphics.Color.parseColor("#0B0B0C")
-    val surface = android.graphics.Color.parseColor("#141416")
-    val surfaceContainer = android.graphics.Color.parseColor("#1D1D20")
-    val surfaceVariant = android.graphics.Color.parseColor("#29292D")
-    val outline = android.graphics.Color.parseColor("#414146")
-    val onBackground = android.graphics.Color.parseColor("#F5F5F5")
-    val onSurface = android.graphics.Color.parseColor("#F5F5F5")
-    val onSurfaceVariant = android.graphics.Color.parseColor("#B9B9BF")
-    val primary = android.graphics.Color.parseColor("#F2F2F2")
-    val onPrimary = android.graphics.Color.parseColor("#111111")
-    val primaryContainer = android.graphics.Color.parseColor("#333337")
-    val onPrimaryContainer = android.graphics.Color.parseColor("#F5F5F5")
-    val error = android.graphics.Color.parseColor("#FF8A80")
-    val errorContainer = android.graphics.Color.parseColor("#5A1B1B")
-    val onErrorContainer = android.graphics.Color.parseColor("#FFDAD6")
+    val background = Color(0xFF0B0B0C)
+    val surface = Color(0xFF141416)
+    val surfaceContainer = Color(0xFF1D1D20)
+    val surfaceVariant = Color(0xFF29292D)
+    val outline = Color(0xFF414146)
+    val onBackground = Color(0xFFF5F5F5)
+    val onSurface = Color(0xFFF5F5F5)
+    val onSurfaceVariant = Color(0xFFB9B9BF)
+    val primary = Color(0xFFF2F2F2)
+    val onPrimary = Color(0xFF111111)
+    val primaryContainer = Color(0xFF333337)
+    val onPrimaryContainer = Color(0xFFF5F5F5)
+    val error = Color(0xFFFF8A80)
+    val errorContainer = Color(0xFF5A1B1B)
+    val onErrorContainer = Color(0xFFFFDAD6)
 }

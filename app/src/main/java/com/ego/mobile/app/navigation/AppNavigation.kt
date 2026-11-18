@@ -12,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.ego.mobile.app.theme.Colors
 import com.ego.mobile.feature.habits.HabitsScreen
 import com.ego.mobile.feature.history.HistoryScreen
 import com.ego.mobile.feature.home.HomeScreen
@@ -28,44 +27,36 @@ fun AppNavigation() {
         navigationState.navigateTo(AppDestination.HOME)
     }
 
-    val destinations = listOf(
-        AppDestination.HOME,
-        AppDestination.HABITS,
-        AppDestination.TASKS,
-        AppDestination.ROUTINES,
-        AppDestination.HAIRCARE
-    )
-
     val screenContent: @Composable () -> Unit = when (destination) {
-        AppDestination.HOME -> { HomeScreen(onContinueRoutine = { type ->
-            navigationState.navigateToRoutine(type),
-            onNavigate = { navigationState.navigateTo(it) }
-        }) }
-        AppDestination.HABITS -> { HabitsScreen() }
-        AppDestination.TASKS -> { TasksScreen() }
-        AppDestination.ROUTINES -> { RoutinesScreen(navigationState.routinesInitialTab) }
-        AppDestination.HAIRCARE -> { com.ego.mobile.feature.routines.haircare.HaircareScreen() }
+        AppDestination.HOME -> {
+            {
+                HomeScreen(
+                    onContinueRoutine = { type ->
+                        navigationState.navigateToRoutine(type)
+                    },
+                )
+            }
+        }
+        AppDestination.HABITS -> { { HabitsScreen() } }
+        AppDestination.TASKS -> { { TasksScreen() } }
+        AppDestination.ROUTINES -> { { RoutinesScreen(navigationState.routinesInitialTab) } }
+        AppDestination.HISTORY -> { { HistoryScreen() } }
     }
 
     Scaffold(
-        containerColor = Colors.background,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             NavigationBar(
-                containerColor = Colors.surface,
+                containerColor = MaterialTheme.colorScheme.surface,
             ) {
-                destinations.forEach { appDestination ->
+                AppDestination.entries.forEach { appDestination ->
                     NavigationBarItem(
                         selected = destination == appDestination,
                         onClick = { navigationState.navigateTo(appDestination) },
-                        // Use title as label; icon is optional per Spec 9
-                        // Showing simple indication - can be replaced with Material icons later
                         icon = {
-                            // Placeholder - Spec 9 specifies monocromatic icons
-                            // Using simple Text for now, or could use Icon
                             Text(
-                                text = appDestination.title.substring(0, 1),
+                                text = appDestination.iconGlyph,
                                 style = MaterialTheme.typography.titleLarge,
-                                color = Color.Transparent, // Hidden, label shown below
                             )
                         },
                         label = { Text(appDestination.title) },

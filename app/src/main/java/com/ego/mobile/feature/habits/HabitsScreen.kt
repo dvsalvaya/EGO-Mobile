@@ -1,5 +1,6 @@
 package com.ego.mobile.feature.habits
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,11 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.ego.mobile.app.theme.Colors
-import com.ego.mobile.app.theme.Spacing
 import com.ego.mobile.domain.model.Habit
 import com.ego.mobile.domain.model.HabitFrequency
 import com.ego.mobile.domain.model.HabitStatus
@@ -46,138 +46,128 @@ fun HabitsScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Colors.background,
-    ) { Box(modifier = Modifier.fillMaxSize()) {
-        // Vazio: ícone discreto, explicação e ação "Criar hábito"
-        if (uiState.isEmpty && !uiState.isLoading) {
-            Column(
+        color = MaterialTheme.colorScheme.background,
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (uiState.errorMessage != null && uiState.isEmpty) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    uiState.errorMessage?.let { message ->
+                        Text(
+                            text = message,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            } else if (uiState.isEmpty && !uiState.isLoading) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = "Nenhum hábito cadastrado",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Crie um hábito para começar a acompanhar sua rotina.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { isDialogOpen = true }) {
+                        Text("Adicionar hábito")
+                    }
+                }
+            } else {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    uiState.errorMessage?.let { message ->
+                        Text(
+                            text = message,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 16.dp, vertical = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        if (uiState.activeHabits.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "Ativos",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                            items(uiState.activeHabits) { habit ->
+                                HabitCard(
+                                    habit = habit,
+                                    onQuickComplete = { viewModel.onQuickComplete(habit.id) },
+                                    onPause = { viewModel.onPauseHabit(habit.id) },
+                                    onResume = { viewModel.onResumeHabit(habit.id) },
+                                )
+                            }
+                        }
+
+                        if (uiState.pausedHabits.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "Pausados",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                            items(uiState.pausedHabits) { habit ->
+                                HabitCard(
+                                    habit = habit,
+                                    onQuickComplete = null,
+                                    onPause = null,
+                                    onResume = { viewModel.onResumeHabit(habit.id) },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            FloatingActionButton(
+                onClick = { isDialogOpen = true },
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(Spacing.lg),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .align(Alignment.BottomEnd)
+                    .padding(20.dp)
+                    .semantics { contentDescription = "Adicionar hábito" },
             ) {
-                Text(
-                    text = "Nenhum hábito cadastrado",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = Colors.onBackground,
-                )
-                Spacer(modifier = Modifier.height(Spacing.sm))
-                Text(
-                    text = "Crie um hábito para começar a acompanhar sua rotina.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Colors.onSurfaceVariant,
-                )
-                Spacer(modifier = Modifier.height(Spacing.md))
-                Button(onClick = { isDialogOpen = true }) {
-                    Text("Adicionar hábito")
-                }
-            }
-        } else {
-            Column(modifier = Modifier.fillMaxSize()) {
-                // Seções Ativos e Pausados - listas compactas
-                uiState.errorMessage?.let { message ->
-                    Text(
-                        text = message,
-                        modifier = Modifier
-                            .padding(horizontal = Spacing.md, vertical = Spacing.sm),
-                        color = Colors.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-
-                if (uiState.activeHabits.isNotEmpty()) {
-                    // Seção: Ativos
-                    Text(
-                        text = "Ativos",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = androidx.compose.ui.font.FontWeight.SemiBold,
-                        color = Colors.onSurface,
-                    )
-                    Spacer(modifier = Modifier.height(Spacing.xs))
-                    LazyColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = Spacing.md, vertical = Spacing.md),
-                        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
-                    ) {
-                        items(uiState.activeHabits) { habit ->
-                            HabitCard(
-                                habit = habit,
-                                onQuickComplete = { viewModel.onQuickComplete(habit.id) },
-                                onPause = { viewModel.onPauseHabit(habit.id) },
-                                onResume = { viewModel.onResumeHabit(habit.id) },
-                            )
-                        }
-                    }
-                }
-
-                if (uiState.pausedHabits.isNotEmpty()) {
-                    // Seção: Pausados
-                    Text(
-                        text = "Pausados",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = androidx.compose.ui.font.FontWeight.SemiBold,
-                        color = Colors.onSurfaceVariant,
-                    )
-                    Spacer(modifier = Modifier.height(Spacing.xs))
-                    LazyColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = Spacing.md, vertical = Spacing.md),
-                        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
-                    ) {
-                        items(uiState.pausedHabits) { habit ->
-                            HabitCard(
-                                habit = habit,
-                                onQuickComplete = null,
-                                onPause = null,
-                                onResume = { viewModel.onResumeHabit(habit.id) },
-                            )
-                        }
-                    }
-                }
+                Text("+")
             }
         }
-
-        // Floating Action Button para criar novo hábito
-        FloatingActionButton(
-            onClick = { isDialogOpen = true },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(Spacing.lg)
-                .semantics { contentDescription = "Adicionar hábito" },
-        ) {
-            Text("+")
-        }
-    } }
+    }
 
     if (isDialogOpen) {
-        // Bottom Sheet para criação/edição de hábito
-        // Usar Bottom Sheet conforme padrão Spec 9
-        androidx.compose.material3.BottomSheetScaffold(
-            scaffoldState = androidx.compose.material3 rememberBottomSheetScaffold(),
-        ) { sheetContent ->
-            androidx.compose.material3.Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = Colors.surface,
-            ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    HabitFormDialog(
-                        onDismiss = { isDialogOpen = false },
-                        onSave = { name, description, frequency ->
-                            viewModel.onCreateHabit(name, description, frequency)
-                            isDialogOpen = false
-                        },
-                    )
-                }
-            }
-        } { sheetContent ->
-            // Conteúdo do Bottom Sheet será substituído
-        }
+        HabitFormDialog(
+            onDismiss = { isDialogOpen = false },
+            onSave = { name, description, frequency ->
+                viewModel.onCreateHabit(name, description, frequency)
+                isDialogOpen = false
+            },
+        )
     }
 }
 
+@Composable
 private fun HabitCard(
     habit: Habit,
     onQuickComplete: (() -> Unit)?,
@@ -188,16 +178,16 @@ private fun HabitCard(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = if (habit.status == HabitStatus.PAUSED) {
-                Colors.surfaceVariant
+                MaterialTheme.colorScheme.surfaceVariant
             } else {
-                Colors.surface
+                MaterialTheme.colorScheme.surface
             },
         ),
-        shape = RoundedCornerShape(Spacing.control),
+        shape = RoundedCornerShape(18.dp),
     ) {
         Column(
-            modifier = Modifier.padding(Spacing.md),
-            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -208,13 +198,13 @@ private fun HabitCard(
                     Text(
                         text = habit.name,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = androidx.compose.ui.font.FontWeight.SemiBold,
+                        fontWeight = FontWeight.SemiBold,
                     )
                     if (!habit.description.isNullOrBlank()) {
                         Text(
                             text = habit.description,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Colors.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -223,15 +213,15 @@ private fun HabitCard(
                     Box(
                         modifier = Modifier
                             .background(
-                                color = Colors.errorContainer,
+                                color = MaterialTheme.colorScheme.secondaryContainer,
                                 shape = RoundedCornerShape(999.dp),
                             )
-                            .padding(horizontal = Spacing.xs, vertical = Spacing.sm),
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
                     ) {
                         Text(
                             text = "Pausado",
                             style = MaterialTheme.typography.labelMedium,
-                            color = Colors.onErrorContainer,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
                     }
                 }
@@ -245,7 +235,7 @@ private fun HabitCard(
                 Text(
                     text = formatFrequency(habit.frequency),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Colors.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
                 if (habit.status == HabitStatus.ACTIVE && onQuickComplete != null) {

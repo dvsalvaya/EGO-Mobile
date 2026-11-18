@@ -6,7 +6,7 @@
 
 Esta decomposição não autoriza implementação enquanto os portões da `docs/specs/README.md` não forem atendidos. Em cada tarefa com código, seguir TDD estrito: executar primeiro teste que falhe pelo comportamento esperado (RED), implementar o mínimo necessário (GREEN), refatorar com testes verdes (REFACTOR). Falha de compilação/configuração/ambiente não conta como RED.
 
-> **Nota de execução:** `TASK-04`, `TASK-08` e `TASK-09` foram implementadas mediante solicitação explícita do responsável, com evidências em `reports/TASK-04.md`, `reports/TASK-08.md` e `reports/TASK-09.md`. O status permanece `IN_PROGRESS` porque a especificação continua `DRAFT` e a verificação integrada (`TASK-12`) não foi executada.
+> **Nota de execução:** os relatórios de TASK-04, TASK-08 e TASK-09 registram trabalho anterior. TASK-04 muda de critério para a V1 e exige nova validação. TASK-08 e TASK-09 preservam suas evidências.
 
 ## Sumário
 
@@ -15,15 +15,17 @@ Esta decomposição não autoriza implementação enquanto os portões da `docs/
 | `TASK-01` | Criar tokens do tema escuro monocromático | `PENDING` | Nenhuma |
 | `TASK-02` | Atualizar navegação principal e acesso ao Histórico interno | `PENDING` | `TASK-01` |
 | `TASK-03` | Padronizar componentes comuns de seção e estado vazio | `PENDING` | `TASK-01` |
-| `TASK-04` | Implementar agregação deduplicada de consistência de sete dias | `IN_PROGRESS` | Nenhuma |
+| `TASK-04` | Calcular grade de hábitos previstos em sete dias | `PENDING` para a V1 | `TASK-13` |
 | `TASK-05` | Atualizar Home com indicadores e listas acionáveis do dia | `PENDING` | `TASK-02`, `TASK-03`, `TASK-04` |
-| `TASK-06` | Atualizar Hábitos com progresso, edição e estados compactos | `PENDING` | `TASK-01`, `TASK-03` |
-| `TASK-07` | Agrupar Tarefas por prazo e adicionar detalhes em Bottom Sheet | `PENDING` | `TASK-01`, `TASK-03` |
+| `TASK-06` | Atualizar Hábitos com metas, dias preferidos e ações | `PENDING` | `TASK-01`, `TASK-03`, `TASK-13` |
+| `TASK-07` | Agrupar Tarefas por prazo e integrar o painel de detalhes | `PENDING` | `TASK-01`, `TASK-03`, RF-06 da Spec 10 |
 | `TASK-08` | Persistir modelos locais de treino com migration Room | `IN_PROGRESS` | Nenhuma |
 | `TASK-09` | Calcular estatísticas e evolução de carga por exercício | `IN_PROGRESS` | Nenhuma |
 | `TASK-10` | Atualizar tela Treinos com modelos, estatísticas e sessão atual | `PENDING` | `TASK-02`, `TASK-03`, `TASK-08`, `TASK-09` |
 | `TASK-11` | Adicionar calendário mensal à tela Cabelo | `PENDING` | `TASK-02`, `TASK-03` |
-| `TASK-12` | Verificar integração visual, acessibilidade e regressão | `PENDING` | `TASK-05`, `TASK-06`, `TASK-07`, `TASK-10`, `TASK-11` |
+| `TASK-12` | Verificar a integração da fase completa | `PENDING` | `TASK-07`, `TASK-10`, `TASK-11`, `TASK-14` |
+| `TASK-13` | Fechar períodos, preservar previsões e corrigir histórico de hábitos | `PENDING` | Base de hábitos da Spec 10 |
+| `TASK-14` | Validar a V1 em Início, Hábitos e Histórico | `PENDING` | `TASK-05`, `TASK-06`, `TASK-13`, RF-06 da Spec 10 |
 
 ## Detalhamento
 
@@ -93,52 +95,18 @@ Esta decomposição não autoriza implementação enquanto os portões da `docs/
 - **Testes e validações:** `EmptyStateScreensTest`, testes instrumentados relevantes e `assembleDebug`.
 - **Condição de conclusão:** todas as telas afetadas passam nos testes de vazio/erro e os alvos de ação permanecem acessíveis.
 
-### `TASK-04`: Implementar agregação deduplicada de consistência de sete dias
+### `TASK-04`: Calcular a grade de sete dias
 
-- **Objetivo:** Produzir contagens diárias a partir dos eventos canônicos concluídos, com identidade estável para deduplicação.
-- **Contexto:** `HistoryItem` não carrega ID de origem; repositórios e fontes históricas são Room. Não contar elementos apenas apresentados em mais de uma tela.
-- **Arquivos afetados:**
-  - `app/src/main/java/com/ego/mobile/domain/model/HistoryItem.kt` e/ou novo modelo de evento de consistência
-  - `app/src/main/java/com/ego/mobile/domain/usecase/`
-  - APIs de repositório apenas se a consulta canônica atual não fornecer identidade/tempo necessários
-  - Novos testes em `app/src/test/java/com/ego/mobile/domain/usecase/`
-- **Dependências:** Nenhuma.
-- **Passos:**
-  1. RED: cobrir sete dias em `America/Sao_Paulo`, ocorrência única de hábito/data, tarefa por ID/`completedAt`, sessão por ID/`endedAt`, exclusão de Cabelo e deduplicação de apresentações repetidas.
-  2. Expor chave canônica `(tipo, sourceId)` e data do evento sem alterar persistência existente.
-  3. Calcular contagem diária e classes 0, 1, 2 e 3+.
-  4. REFACTOR: manter cálculo puro/testável e relógio/data injetáveis.
-- **Critérios de aceitação:**
-  - Só conclusão real de hábito/tarefa/sessão conta.
-  - Atividades repetidas na UI contam uma vez; itens com mesmo número mas tipo diferente não colidem.
-  - Datas civis usam o fuso de produto; não há percentual geral.
-- **Testes e validações:** testes unitários de limites de dia/fuso, deduplicação e faixas; `testDebugUnitTest`.
-- **Condição de conclusão:** agregação determinística coberta por testes comportamentais RED/GREEN.
+- Usar as previsões e conclusões por hábito/data de TASK-13 para calcular a fração diária. A agregação anterior, baseada em eventos de várias áreas, não atende à métrica da V1.
+- Validar as faixas de cor, dia vazio, dia atual aberto, alteração de frequência e correção histórica, com relógio controlado.
 
-### `TASK-05`: Atualizar Home com indicadores e listas acionáveis do dia
+### `TASK-05`: Atualizar a Home da V1
 
-- **Objetivo:** Implementar a Home aprovada sem remover atalhos e ações já existentes.
-- **Contexto:** A Home atual tem header “Resumo do dia”, cards de hábitos/tarefas e banner de rotina, mas não possui data model para indicadores ou consistência.
-- **Arquivos afetados:**
-  - `feature/home/HomeScreen.kt`, `HomeUiState.kt`, `HomeViewModel.kt`
-  - `feature/home/components/QuickActionHeader.kt`, `TodayHabitsSummaryCard.kt`, `PriorityTasksCard.kt`, `ActiveRoutineBanner.kt`
-  - `domain/model/HomeSummary.kt` e casos de uso
-  - Testes `HomeViewModelTest`, `HomeScreenTest` e novo teste de consistência instrumentado
-  - `feature/tasks/components/TaskDetailsBottomSheet.kt` (novo, ou localização decidida no plano)
-- **Dependências:** `TASK-02`, `TASK-03`, `TASK-04`.
-- **Passos:**
-  1. RED: testar cabeçalho neutro, contadores separados, listas do dia, “Ver tudo”, detalhe de tarefa e consistência.
-  2. Ligar estado da Home às fontes persistidas e ao agregador deduplicado.
-  3. Construir seções “Seu dia”, ações rápidas, “Para hoje” e “Sua consistência”.
-  4. Mostrar treinos/cabelo somente conforme relevância diária aprovada.
-  5. REFACTOR: compactar componentes internos e manter cards principais apenas onde organizam informação.
-- **Critérios de aceitação:**
-  - Home mostra “Olá”, sem data, perfil ou configurações.
-  - Métricas de hábito/tarefa continuam independentes.
-  - Concluir hábito persiste uma ocorrência; tocar tarefa abre detalhes; “Ver tudo” navega à área.
-  - “Ver histórico” abre a tela interna e Back retorna à Home.
-- **Testes e validações:** `HomeViewModelTest`, `HomeScreenTest`, testes de consistência, `connectedDebugAndroidTest`.
-- **Condição de conclusão:** comportamento validado contra os critérios `AC-04`–`AC-08` da spec e nenhuma cópia de estado local substitui Room.
+- Implementar saudação por horário e edição do nome local, retorno de rolagem, continuação de treino e aviso capilar quando aplicável.
+- Implementar “Para hoje” com contagens totais, limites, prioridades, detalhes e desfazer. Reutilizar a regra civil de RF-06.
+- Colocar o “+” fixo no canto inferior direito, acima da barra, com menu de criação. Validar que todos os itens continuam alcançáveis por rolagem.
+- Mostrar os sete quadrados de TASK-04, descrição acessível e acesso ao Histórico.
+- Validar primeiro uso, estado “Tudo em dia”, carregamento, erros e os fluxos de criação, conclusão e retorno.
 
 ### `TASK-06`: Atualizar Hábitos com progresso, edição e estados compactos
 
@@ -164,20 +132,20 @@ Esta decomposição não autoriza implementação enquanto os portões da `docs/
 ### `TASK-07`: Agrupar Tarefas por prazo e adicionar detalhes em Bottom Sheet
 
 - **Objetivo:** Agrupar tarefas abertas sem alterar a regra temporal ou operações já aprovadas.
-- **Contexto:** `Task.isOverdue(now)` usa `dueAt < agora`; o DatePicker persiste o início do dia local. Manter esse comportamento mesmo quando prazo civil é hoje.
+- **Contexto:** reutilizar RF-06 da Spec 10 para agrupar pela data civil de vencimento.
 - **Arquivos afetados:**
   - `feature/tasks/TasksScreen.kt`, `TasksUiState.kt`, `TasksViewModel.kt`
   - `feature/tasks/components/TaskItem.kt`, formulários e novo Bottom Sheet de detalhes
   - Testes `TasksViewModelTest`, `TaskItemAccessibilityTest` e teste instrumentado de agrupamento/detalhes
 - **Dependências:** `TASK-01`, `TASK-03`.
 - **Passos:**
-  1. RED: testar precedência do predicado atual de atraso, grupos únicos, ordem, itens sem prazo e detalhe.
+  1. RED: testar classificação por data civil, grupos únicos, ordem, itens sem prazo e detalhe.
   2. Agrupar Atrasadas, Hoje e Próximas; inserir itens sem prazo no final de Próximas com rótulo.
   3. Abrir detalhes ao tocar item e manter conclusão, edição, reagendamento, exclusão confirmada e Undo.
   4. Migrar criação/edição para Bottom Sheet; manter DatePicker/diálogo/Snackbar quando apropriado.
   5. REFACTOR: aplicar cor semântica e indicação não cromática.
 - **Critérios de aceitação:**
-  - `dueAt < now` é exatamente o critério de atraso.
+  - Tarefas com vencimento hoje passam a atrasadas na próxima data civil em America/Sao_Paulo.
   - Cada tarefa aberta aparece em um grupo; tarefas sem prazo nunca são atrasadas.
   - Concluídas continuam ocultas por padrão e consultáveis.
 - **Testes e validações:** `TasksViewModelTest`, `TaskItemAccessibilityTest`, Compose UI, `testDebugUnitTest`.
@@ -285,11 +253,23 @@ Esta decomposição não autoriza implementação enquanto os portões da `docs/
   4. Revisar acessibilidade, manifesto/dependências inalteradas e preservação dos fluxos das fases anteriores.
   5. Registrar comandos, resultados observados e limitações; não marcar critérios sem evidência.
 - **Critérios de aceitação:**
-  - Critérios `AC-01`–`AC-16` da spec têm evidência identificável.
+  - Critérios `AC-01`–`AC-18` da spec têm evidência identificável.
   - Nenhuma falha é ignorada e nenhum teste é alterado apenas para passar.
   - Nenhum requisito fora do PRD/spec aprovada foi introduzido.
 - **Testes e validações:** três comandos Gradle acima, testes focados por funcionalidade e inspeção de acessibilidade.
 - **Condição de conclusão:** todas as tarefas anteriores estão verificadas e o relatório contém evidências reproduzíveis.
+
+### `TASK-13`: Fechar períodos e corrigir histórico de hábitos
+
+- Persistir dias preferidos opcionais na meta semanal. Preservar o plano histórico ao editar frequência ou dias.
+- Fechar dias fixos/diários e metas semanais conforme a Spec. Validar fechamento após app fechado e reabertura sem duplicatas.
+- Mostrar “Não fiz” em datas encerradas sem conclusão. Expor uma linha por dia ou semana, com ação de corrigir a data original. Aceitar correção histórica mesmo acima da meta.
+- Validar contagem, viradas de dia/semana, ausência de previsões após atingir a meta e reflexo da correção na grade e no Histórico. Testar migração Room se o schema mudar.
+
+### `TASK-14`: Validar a V1
+
+- Validar Início, Hábitos e Histórico, com os cinco destinos disponíveis. Confirmar prazos, acesso aos fluxos existentes, persistência, rotação, semântica da grade e toque/rolagem em 360 dp e 412 dp com fonte ampliada.
+- Registrar evidências para AC-01 a AC-08 e AC-13 a AC-18 no escopo da V1. TASK-12 cobre a fase completa.
 
 ## Cobertura dos critérios de aceite
 
@@ -303,5 +283,6 @@ Esta decomposição não autoriza implementação enquanto os portões da `docs/
 | `AC-11` | `TASK-09`, `TASK-10`, `TASK-12` |
 | `AC-12` | `TASK-11`, `TASK-12` |
 | `AC-13`–`AC-15` | `TASK-03`, `TASK-05`–`TASK-07`, `TASK-10`–`TASK-12` |
-| `AC-16` | `TASK-12` |
+| `AC-16` | `TASK-12`, `TASK-14` |
+| `AC-17`–`AC-18` | `TASK-04`, `TASK-06`, `TASK-13`, `TASK-14` |
 
