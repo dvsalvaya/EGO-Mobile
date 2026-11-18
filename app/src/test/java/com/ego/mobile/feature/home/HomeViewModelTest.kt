@@ -105,6 +105,18 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun `invalid habit details are reported and are not sent to persistence`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        runCurrent()
+
+        viewModel.onCreateHabit("N".repeat(81), "D".repeat(251), HabitFrequency.Daily)
+        runCurrent()
+
+        assertEquals("Habit name must be 1 to 80 characters.", (viewModel.uiState.value as HomeUiState.Content).errorMessage)
+        assertTrue(habits.habits.value.isEmpty())
+    }
+
+    @Test
     fun `summary follows changes from the use case`() = runTest(dispatcher) {
         val viewModel = createViewModel()
         runCurrent()

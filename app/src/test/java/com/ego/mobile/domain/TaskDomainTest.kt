@@ -51,7 +51,10 @@ class TaskDomainTest {
 
         val overdueOpenTask = Task(
             title = "Enviar proposta",
-            dueAt = now - 10_000L,
+            dueAt = java.time.Instant.ofEpochMilli(now)
+                .atZone(java.time.ZoneId.of("America/Sao_Paulo"))
+                .toLocalDate().minusDays(1)
+                .atStartOfDay(java.time.ZoneId.of("America/Sao_Paulo")).toInstant().toEpochMilli(),
             status = TaskStatus.OPEN,
             createdAt = now - 50_000L,
             updatedAt = now - 50_000L,

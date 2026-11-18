@@ -1,6 +1,5 @@
 package com.ego.mobile.feature.habits
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,12 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,140 +30,155 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ego.mobile.domain.model.Habit
 import com.ego.mobile.domain.model.HabitFrequency
+import com.ego.mobile.domain.model.HabitProgress
 import com.ego.mobile.domain.model.HabitStatus
+import java.time.DayOfWeek
 
 @Composable
-fun HabitsScreen(
-    viewModel: HabitsViewModel = rememberHabitsViewModel(),
-) {
+fun HabitsScreen(viewModel: HabitsViewModel = rememberHabitsViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     var isDialogOpen by remember { mutableStateOf(false) }
+    var editingHabit by remember { mutableStateOf<Habit?>(null) }
+    var frequencyHabit by remember { mutableStateOf<Habit?>(null) }
+    var selectedFrequency by remember { mutableStateOf<HabitFrequency?>(null) }
+    var archivingHabit by remember { mutableStateOf<Habit?>(null) }
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background,
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (uiState.errorMessage != null && uiState.isEmpty) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    uiState.errorMessage?.let { message ->
-                        Text(
-                            text = message,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    }
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Box(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxSize()) {
+                uiState.errorMessage?.let { message ->
+                    Text(message, Modifier.padding(horizontal = 16.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.error)
                 }
-            } else if (uiState.isEmpty && !uiState.isLoading) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(
-                        text = "Nenhum hábito cadastrado",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "Crie um hábito para começar a acompanhar sua rotina.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = { isDialogOpen = true }) {
-                        Text("Adicionar hábito")
+                if (uiState.isEmpty && !uiState.isLoading) {
+                    Column(
+                        Modifier.fillMaxSize().padding(24.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text("Nenhum hábito cadastrado", style = MaterialTheme.typography.headlineSmall)
+                        Spacer(Modifier.height(12.dp))
+                        Text("Crie um hábito para começar a acompanhar sua rotina.")
+                        Spacer(Modifier.height(16.dp))
+                        Button(onClick = { isDialogOpen = true }) { Text("Adicionar hábito") }
                     }
-                }
-            } else {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    uiState.errorMessage?.let { message ->
-                        Text(
-                            text = message,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
+                } else {
                     LazyColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 16.dp, vertical = 20.dp),
+                        Modifier.weight(1f).padding(horizontal = 16.dp, vertical = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         if (uiState.activeHabits.isNotEmpty()) {
-                            item {
-                                Text(
-                                    text = "Ativos",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                            }
-                            items(uiState.activeHabits) { habit ->
+                            item { Text("Ativos", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold) }
+                            items(uiState.activeHabits, key = { it.id }) { habit ->
                                 HabitCard(
                                     habit = habit,
-                                    onQuickComplete = { viewModel.onQuickComplete(habit.id) },
+                                    progress = uiState.progressByHabitId[habit.id],
+                                    onComplete = { viewModel.onQuickComplete(habit.id) },
+                                    onUndo = { viewModel.onUndoCompletion(habit.id) },
                                     onPause = { viewModel.onPauseHabit(habit.id) },
-                                    onResume = { viewModel.onResumeHabit(habit.id) },
+                                    onResume = null,
+                                    onEdit = { editingHabit = habit },
+                                    onChangeFrequency = {
+                                        frequencyHabit = habit
+                                        selectedFrequency = habit.frequency
+                                    },
+                                    onArchive = { archivingHabit = habit },
                                 )
                             }
                         }
-
                         if (uiState.pausedHabits.isNotEmpty()) {
-                            item {
-                                Text(
-                                    text = "Pausados",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                            }
-                            items(uiState.pausedHabits) { habit ->
+                            item { Text("Pausados", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold) }
+                            items(uiState.pausedHabits, key = { it.id }) { habit ->
                                 HabitCard(
                                     habit = habit,
-                                    onQuickComplete = null,
+                                    progress = uiState.progressByHabitId[habit.id],
+                                    onComplete = null,
+                                    onUndo = null,
                                     onPause = null,
                                     onResume = { viewModel.onResumeHabit(habit.id) },
+                                    onEdit = { editingHabit = habit },
+                                    onChangeFrequency = {
+                                        frequencyHabit = habit
+                                        selectedFrequency = habit.frequency
+                                    },
+                                    onArchive = { archivingHabit = habit },
                                 )
                             }
                         }
                     }
                 }
             }
-
             FloatingActionButton(
-                onClick = { isDialogOpen = true },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(20.dp)
+                onClick = { editingHabit = null; isDialogOpen = true },
+                modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp)
                     .semantics { contentDescription = "Adicionar hábito" },
-            ) {
-                Text("+")
-            }
+            ) { Text("+") }
         }
     }
 
-    if (isDialogOpen) {
+    if (isDialogOpen || editingHabit != null) {
+        val target = editingHabit
         HabitFormDialog(
-            onDismiss = { isDialogOpen = false },
+            initialName = target?.name.orEmpty(),
+            initialDescription = target?.description.orEmpty(),
+            initialFrequency = target?.frequency ?: HabitFrequency.Daily,
+            onDismiss = { isDialogOpen = false; editingHabit = null },
             onSave = { name, description, frequency ->
-                viewModel.onCreateHabit(name, description, frequency)
+                if (target == null) viewModel.onCreateHabit(name, description, frequency)
+                else viewModel.onUpdateHabitDetails(target.id, name, description)
                 isDialogOpen = false
+                editingHabit = null
             },
+        )
+    }
+
+    if (frequencyHabit != null) {
+        val habit = frequencyHabit!!
+        AlertDialog(
+            onDismissRequest = { frequencyHabit = null },
+            title = { Text("Alterar frequência") },
+            text = {
+                Column {
+                    Text("As ocorrências anteriores serão preservadas. A nova frequência vale a partir de hoje.")
+                    listOf(
+                        HabitFrequency.Daily to "Diaria",
+                        HabitFrequency.WeeklyDays(setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY)) to "Segunda, quarta e sexta",
+                        HabitFrequency.TimesPerWeek(3) to "3 vezes por semana",
+                    ).forEach { (frequency, label) ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = selectedFrequency == frequency,
+                                onClick = { selectedFrequency = frequency },
+                            )
+                            Text(label)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    selectedFrequency?.let { viewModel.onUpdateFrequency(habit.id, it) }
+                    frequencyHabit = null
+                }) { Text("Aplicar a partir de hoje") }
+            },
+            dismissButton = { OutlinedButton(onClick = { frequencyHabit = null }) { Text("Cancelar alteracao") } },
+        )
+    }
+
+    archivingHabit?.let { habit ->
+        AlertDialog(
+            onDismissRequest = { archivingHabit = null },
+            title = { Text("Arquivar hábito?") },
+            text = { Text("O histórico e as ocorrências serão preservados. O hábito deixará de aceitar novas conclusões.") },
+            confirmButton = {
+                Button(onClick = { viewModel.onArchiveHabit(habit.id); archivingHabit = null }) { Text("Arquivar") }
+            },
+            dismissButton = { OutlinedButton(onClick = { archivingHabit = null }) { Text("Cancelar") } },
         )
     }
 }
@@ -170,92 +186,49 @@ fun HabitsScreen(
 @Composable
 private fun HabitCard(
     habit: Habit,
-    onQuickComplete: (() -> Unit)?,
+    progress: HabitProgress?,
+    onComplete: (() -> Unit)?,
+    onUndo: (() -> Unit)?,
     onPause: (() -> Unit)?,
     onResume: (() -> Unit)?,
+    onEdit: () -> Unit,
+    onChangeFrequency: () -> Unit,
+    onArchive: () -> Unit,
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = if (habit.status == HabitStatus.PAUSED) {
-                MaterialTheme.colorScheme.surfaceVariant
-            } else {
-                MaterialTheme.colorScheme.surface
-            },
+            containerColor = if (habit.status == HabitStatus.PAUSED) MaterialTheme.colorScheme.surfaceVariant
+            else MaterialTheme.colorScheme.surface,
         ),
         shape = RoundedCornerShape(18.dp),
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = habit.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    if (!habit.description.isNullOrBlank()) {
-                        Text(
-                            text = habit.description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(habit.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            habit.description?.takeIf(String::isNotBlank)?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+            Text(formatFrequency(habit.frequency), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            when {
+                progress?.weeklyTarget != null -> {
+                    Text("Progresso da semana: ${progress.label}", style = MaterialTheme.typography.labelLarge)
+                    if (progress.isWeeklyGoalReached) Text("Meta semanal atingida")
                 }
-
-                if (habit.status == HabitStatus.PAUSED) {
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                color = MaterialTheme.colorScheme.secondaryContainer,
-                                shape = RoundedCornerShape(999.dp),
-                            )
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                    ) {
-                        Text(
-                            text = "Pausado",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        )
-                    }
-                }
+                progress?.completedToday == true -> Text("Concluído hoje")
+                habit.status == HabitStatus.PAUSED -> Text("Pausado")
             }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = formatFrequency(habit.frequency),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
-                if (habit.status == HabitStatus.ACTIVE && onQuickComplete != null) {
-                    Button(
-                        onClick = onQuickComplete,
-                        modifier = Modifier.semantics {
-                            contentDescription = "Concluir hábito: ${habit.name}"
-                        },
-                    ) {
-                        Text("✓")
-                    }
-                } else if (habit.status == HabitStatus.PAUSED && onResume != null) {
-                    OutlinedButton(onClick = onResume) {
-                        Text("Retomar")
-                    }
-                } else if (habit.status == HabitStatus.ACTIVE && onPause != null) {
-                    OutlinedButton(onClick = onPause) {
-                        Text("Pausar")
-                    }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (onComplete != null && progress?.canCompleteToday != false) {
+                    Button(onClick = onComplete) { Text("Concluir") }
                 }
+                if (onUndo != null && progress?.completedToday == true) {
+                    OutlinedButton(onClick = onUndo) { Text("Desfazer") }
+                }
+                if (onPause != null) OutlinedButton(onClick = onPause) { Text("Pausar") }
+                if (onResume != null) OutlinedButton(onClick = onResume) { Text("Retomar") }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = onEdit) { Text("Editar") }
+                OutlinedButton(onClick = onChangeFrequency) { Text("Frequencia") }
+                OutlinedButton(onClick = onArchive) { Text("Arquivar") }
             }
         }
     }

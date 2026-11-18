@@ -27,31 +27,38 @@ fun HabitFormDialog(
     initialName: String = "",
     initialDescription: String = "",
     initialFrequency: HabitFrequency = HabitFrequency.Daily,
+    title: String = if (initialName.isBlank()) "Novo hábito" else "Editar hábito",
     onDismiss: () -> Unit,
     onSave: (name: String, description: String?, frequency: HabitFrequency) -> Unit,
 ) {
     var name by remember(initialName) { mutableStateOf(initialName) }
     var description by remember(initialDescription) { mutableStateOf(initialDescription) }
     var selectedFrequency by remember(initialFrequency) { mutableStateOf(initialFrequency) }
+    var nameError by remember(initialName) { mutableStateOf<String?>(null) }
+    var descriptionError by remember(initialDescription) { mutableStateOf<String?>(null) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "Novo hábito") },
+        title = { Text(text = title) },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { name = it },
+                    onValueChange = { name = it; nameError = null },
                     label = { Text("Nome") },
+                    isError = nameError != null,
+                    supportingText = { Text(nameError ?: "${name.length}/80") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
 
                 OutlinedTextField(
                     value = description,
-                    onValueChange = { description = it },
+                    onValueChange = { description = it; descriptionError = null },
+                    isError = descriptionError != null,
+                    supportingText = { Text(descriptionError ?: "${description.length}/250") },
                     label = { Text("Descrição (opcional)") },
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -81,7 +88,16 @@ fun HabitFormDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    if (name.isNotBlank()) {
+                    val trimmedName = name.trim()
+                    nameError = when {
+                        trimmedName.isEmpty() -> "Informe um nome."
+                        trimmedName.length > 80 -> "Use no máximo 80 caracteres."
+                        else -> null
+                    }
+                    descriptionError = if (description.length > 250) {
+                        "Use no máximo 250 caracteres."
+                    } else null
+                    if (nameError == null && descriptionError == null) {
                         onSave(name.trim(), description.trim().ifEmpty { null }, selectedFrequency)
                     }
                 },

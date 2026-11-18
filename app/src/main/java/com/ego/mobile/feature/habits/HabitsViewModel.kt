@@ -10,13 +10,16 @@ import com.ego.mobile.data.repository.HabitRepositoryImpl
 import com.ego.mobile.domain.model.Habit
 import com.ego.mobile.domain.model.HabitFrequency
 import com.ego.mobile.domain.model.HabitStatus
+import com.ego.mobile.domain.model.HabitProgress
 import com.ego.mobile.domain.repository.HabitRepository
+import com.ego.mobile.domain.usecase.observeHabitOccurrenceSnapshot
 import com.ego.mobile.domain.usecase.UpdateHabitFrequencyUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -26,6 +29,7 @@ import java.time.ZoneId
 
 class HabitsViewModel(
     private val repository: HabitRepository,
+    private val today: () -> LocalDate = { LocalDate.now(ZoneId.of("America/Sao_Paulo")) },
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HabitsUiState())
@@ -34,14 +38,22 @@ class HabitsViewModel(
     private val updateHabitFrequencyUseCase = UpdateHabitFrequencyUseCase()
 
     init {
-        repository.observeAllHabits()
+        repository.observeHabitOccurrenceSnapshot()
             .onStart { _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null) }
-            .onEach { habits ->
+            .onEach { snapshot ->
+                val habits = snapshot.habits
                 val active = habits.filter { it.status == HabitStatus.ACTIVE }
                 val paused = habits.filter { it.status == HabitStatus.PAUSED }
                 _uiState.value = HabitsUiState(
                     activeHabits = active.sortedByDescending { it.updatedAt },
                     pausedHabits = paused.sortedByDescending { it.updatedAt },
+                    progressByHabitId = habits.associate { habit ->
+                        habit.id to HabitProgress.calculate(
+                            habit,
+                            snapshot.occurrencesByHabit[habit.id].orEmpty(),
+                            today(),
+                        )
+                    },
                     isLoading = false,
                     errorMessage = null,
                 )
@@ -57,10 +69,53 @@ class HabitsViewModel(
 
     fun onQuickComplete(habitId: Long) {
         viewModelScope.launch {
-            val result = repository.completeOccurrence(habitId, todayCivilDate(), null)
+            val result = repository.completeOccurrence(habitId, today().toString(), null)
             if (result.isFailure) {
                 _uiState.value = _uiState.value.copy(
                     errorMessage = result.exceptionOrNull()?.message ?: "Não foi possível concluir o hábito.",
+                )
+            }
+        }
+    }
+
+    fun onUndoCompletion(habitId: Long) {
+        viewModelScope.launch {
+            repository.undoOccurrence(habitId, today().toString()).onFailure { error ->
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = error.message ?: "NÃ£o foi possÃ­vel desfazer a conclusÃ£o.",
+                )
+            }
+        }
+    }
+
+    fun onUpdateHabitDetails(habitId: Long, name: String, description: String?) {
+        viewModelScope.launch {
+            val existing = repository.getHabitById(habitId) ?: return@launch
+            runCatching {
+                existing.copy(
+                    name = name.trim(),
+                    description = description?.trim()?.takeIf(String::isNotEmpty),
+                    updatedAt = System.currentTimeMillis(),
+                )
+            }.onSuccess { updated ->
+                runCatching { repository.updateHabit(updated) }.onFailure { error ->
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = error.message ?: "Nao foi possivel atualizar o habito.",
+                    )
+                }
+            }.onFailure { error ->
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = error.message ?: "Verifique os dados do habito.",
+                )
+            }
+        }
+    }
+
+    fun onArchiveHabit(habitId: Long) {
+        viewModelScope.launch {
+            repository.archiveHabit(habitId).onFailure { error ->
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = error.message ?: "NÃ£o foi possÃ­vel arquivar o hÃ¡bito.",
                 )
             }
         }
@@ -90,16 +145,23 @@ class HabitsViewModel(
 
     fun onCreateHabit(name: String, description: String?, frequency: HabitFrequency) {
         viewModelScope.launch {
-            val trimmedName = name.trim()
-            val habit = Habit(
-                name = trimmedName,
-                description = description?.trim()?.takeIf { it.isNotEmpty() },
-                frequency = frequency,
-                status = HabitStatus.ACTIVE,
-                createdAt = System.currentTimeMillis(),
-                updatedAt = System.currentTimeMillis(),
-            )
-            repository.saveHabit(habit)
+            runCatching {
+                val now = System.currentTimeMillis()
+                Habit(
+                    name = name.trim(),
+                    description = description?.trim()?.takeIf { it.isNotEmpty() },
+                    frequency = frequency,
+                    status = HabitStatus.ACTIVE,
+                    createdAt = now,
+                    updatedAt = now,
+                )
+            }.onSuccess { habit ->
+                runCatching { repository.saveHabit(habit) }.onFailure { error ->
+                    _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "NÃ£o foi possÃ­vel salvar o hÃ¡bito.")
+                }
+            }.onFailure { error ->
+                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Verifique os dados do hÃ¡bito.")
+            }
         }
     }
 
@@ -110,10 +172,12 @@ class HabitsViewModel(
             val result = updateHabitFrequencyUseCase.invoke(
                 habit = existingHabit,
                 newFrequency = newFrequency,
-                effectiveDate = LocalDate.now(ZoneId.of("America/Sao_Paulo")),
+                effectiveDate = today(),
                 existingOccurrences = occurrences,
             )
-            repository.updateHabit(result.habit)
+            runCatching { repository.updateHabit(result.habit) }.onFailure { error ->
+                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "NÃ£o foi possÃ­vel alterar a frequÃªncia.")
+            }
         }
     }
 
@@ -121,7 +185,6 @@ class HabitsViewModel(
         _uiState.value = _uiState.value.copy(errorMessage = null)
     }
 
-    private fun todayCivilDate(): String = LocalDate.now(ZoneId.of("America/Sao_Paulo")).toString()
 }
 
 @Composable

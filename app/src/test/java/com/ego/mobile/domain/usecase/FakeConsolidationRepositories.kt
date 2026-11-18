@@ -41,11 +41,15 @@ internal class FakeConsolidationHabitRepository : HabitRepository {
         return completionResult
     }
 
+    override suspend fun undoOccurrence(habitId: Long, dateCivil: String): Result<Unit> = Result.success(Unit)
+
     override suspend fun pauseHabit(habitId: Long): Result<Unit> =
         Result.failure(UnsupportedOperationException())
 
     override suspend fun resumeHabit(habitId: Long): Result<Unit> =
         Result.failure(UnsupportedOperationException())
+
+    override suspend fun archiveHabit(habitId: Long): Result<Unit> = Result.success(Unit)
 
     override suspend fun getOccurrenceForDate(habitId: Long, dateCivil: String): HabitOccurrence? =
         occurrences[habitId]?.value?.firstOrNull { it.date.toString() == dateCivil }

@@ -71,6 +71,14 @@ class HomeViewModel(
         }
     }
 
+    fun onUndoHabit(habitId: Long) {
+        viewModelScope.launch {
+            habitRepository.undoOccurrence(habitId, today().toString()).onFailure { error ->
+                setError(error.message ?: "NÃ£o foi possÃ­vel desfazer a conclusÃ£o.")
+            }
+        }
+    }
+
     fun onCompleteTask(taskId: Long) {
         viewModelScope.launch {
             try {
