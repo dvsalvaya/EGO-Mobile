@@ -8,6 +8,6 @@ enum class AppDestination(
     HOME("home", "Início", "⌂"),
     HABITS("habits", "Hábitos", "✓"),
     TASKS("tasks", "Tarefas", "☑"),
-    ROUTINES("routines", "Rotinas", "◫"),
-    HISTORY("history", "Histórico", "◌");
+    WORKOUTS("workouts", "Treinos", "⚡"),
+    HAIRCARE("haircare", "Cabelo", "✦");
 }

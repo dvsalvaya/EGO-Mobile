@@ -44,7 +44,7 @@ class WorkoutRegressionTest {
 
     @Test
     fun selectedDestinationSurvivesActivityRecreation() {
-        listOf("Início", "Hábitos", "Tarefas", "Rotinas", "Histórico").forEach { destination ->
+        listOf("Início", "Hábitos", "Tarefas", "Treinos", "Cabelo").forEach { destination ->
             val tab = hasText(destination) and hasClickAction()
             composeRule.onNode(tab).performClick()
             composeRule.activityRule.scenario.recreate()
