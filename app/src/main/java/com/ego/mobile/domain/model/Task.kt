@@ -1,5 +1,8 @@
 package com.ego.mobile.domain.model
 
+import java.time.Instant
+import java.time.ZoneId
+
 data class Task(
     val id: Long = 0L,
     val title: String,
@@ -20,6 +23,9 @@ data class Task(
 
     fun isOverdue(nowMillis: Long = System.currentTimeMillis()): Boolean {
         if (status != TaskStatus.OPEN || dueAt == null) return false
-        return dueAt < nowMillis
+        val zone = ZoneId.of("America/Sao_Paulo")
+        val dueDate = Instant.ofEpochMilli(dueAt).atZone(zone).toLocalDate()
+        val today = Instant.ofEpochMilli(nowMillis).atZone(zone).toLocalDate()
+        return dueDate.isBefore(today)
     }
 }

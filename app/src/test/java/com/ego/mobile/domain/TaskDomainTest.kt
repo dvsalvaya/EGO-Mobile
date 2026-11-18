@@ -5,6 +5,8 @@ import com.ego.mobile.domain.model.TaskStatus
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.LocalDate
+import java.time.ZoneId
 
 class TaskDomainTest {
 
@@ -71,5 +73,26 @@ class TaskDomainTest {
             updatedAt = now - 5_000L,
         )
         assertFalse(completedTask.isOverdue(now))
+    }
+
+    @Test
+    fun `due date is compared as civil date in Sao Paulo`() {
+        val zone = ZoneId.of("America/Sao_Paulo")
+        val today = LocalDate.of(2026, 11, 18)
+        val now = today.atTime(23, 59).atZone(zone).toInstant().toEpochMilli()
+        fun taskFor(date: LocalDate, status: TaskStatus = TaskStatus.OPEN, due: Boolean = true) = Task(
+            title = "Tarefa",
+            dueAt = if (due) date.atStartOfDay(zone).toInstant().toEpochMilli() else null,
+            status = status,
+            createdAt = now - 1000,
+            updatedAt = now - 1000,
+        )
+
+        assertTrue(taskFor(today.minusDays(1)).isOverdue(now))
+        assertFalse(taskFor(today).isOverdue(now))
+        assertFalse(taskFor(today.plusDays(1)).isOverdue(now))
+        assertTrue(taskFor(today).isOverdue(today.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()))
+        assertFalse(taskFor(today.minusDays(1), TaskStatus.COMPLETED).isOverdue(now))
+        assertFalse(taskFor(today, due = false).isOverdue(now))
     }
 }
