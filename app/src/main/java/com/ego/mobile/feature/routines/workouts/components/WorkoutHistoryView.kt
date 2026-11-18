@@ -42,7 +42,7 @@ fun WorkoutHistoryView(
             EmptyState(
                 title = "Nenhum treino concluído ainda",
                 message = "Nenhum treino concluído ainda. Inicie seu primeiro treino acima!",
-                actionLabel = "Iniciar Treino",
+                actionLabel = "Começar primeiro treino",
                 onActionClick = onStartWorkout,
                 isCard = true,
             )
