@@ -12,7 +12,7 @@ Esta decomposição não autoriza implementação enquanto os portões da `docs/
 
 | ID | Tarefa | Status | Dependências |
 |---|---|---|---|
-| `TASK-01` | Criar tokens do tema escuro monocromático | `PENDING` | Nenhuma |
+| `TASK-01` | Criar tokens do tema escuro monocromático | `IMPLEMENTED` | Nenhuma |
 | `TASK-02` | Atualizar navegação principal e acesso ao Histórico interno | `PENDING` | `TASK-01` |
 | `TASK-03` | Padronizar componentes comuns de seção e estado vazio | `PENDING` | `TASK-01` |
 | `TASK-04` | Calcular grade de hábitos previstos em sete dias | `PENDING` para a V1 | `TASK-13` |
