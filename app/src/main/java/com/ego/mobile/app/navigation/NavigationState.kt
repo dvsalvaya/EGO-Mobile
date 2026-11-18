@@ -8,24 +8,41 @@ import com.ego.mobile.domain.model.ActivityType
 
 class NavigationState(
     initialDestination: AppDestination = AppDestination.HOME,
-    initialRoutinesTab: Int = 0,
+    initialIsHistoryOpen: Boolean = false,
 ) {
     var currentDestination: AppDestination by mutableStateOf(initialDestination)
         private set
-    var routinesInitialTab: Int by mutableStateOf(initialRoutinesTab)
+
+    var isHistoryOpen: Boolean by mutableStateOf(initialIsHistoryOpen)
         private set
 
     fun navigateTo(destination: AppDestination) {
         currentDestination = destination
+        isHistoryOpen = false
+    }
+
+    fun openHistory() {
+        isHistoryOpen = true
+    }
+
+    fun closeHistory() {
+        isHistoryOpen = false
     }
 
     fun navigateToRoutine(type: ActivityType) {
-        routinesInitialTab = if (type == ActivityType.HAIRCARE) 1 else 0
-        currentDestination = AppDestination.ROUTINES
+        currentDestination = if (type == ActivityType.HAIRCARE) {
+            AppDestination.HAIRCARE
+        } else {
+            AppDestination.WORKOUTS
+        }
+        isHistoryOpen = false
     }
 
     fun handleBack(): Boolean {
-        return if (currentDestination != AppDestination.HOME) {
+        return if (isHistoryOpen) {
+            isHistoryOpen = false
+            true
+        } else if (currentDestination != AppDestination.HOME) {
             currentDestination = AppDestination.HOME
             true
         } else {
@@ -35,11 +52,11 @@ class NavigationState(
 
     companion object {
         val Saver: Saver<NavigationState, List<Int>> = Saver(
-            save = { listOf(it.currentDestination.ordinal, it.routinesInitialTab) },
+            save = { listOf(it.currentDestination.ordinal, if (it.isHistoryOpen) 1 else 0) },
             restore = { values ->
                 NavigationState(
                     initialDestination = AppDestination.entries.getOrElse(values[0]) { AppDestination.HOME },
-                    initialRoutinesTab = values.getOrElse(1) { 0 },
+                    initialIsHistoryOpen = values.getOrElse(1) { 0 } == 1,
                 )
             },
         )

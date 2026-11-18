@@ -34,6 +34,7 @@ import com.ego.mobile.feature.tasks.components.TaskFormDialog
 fun HomeScreen(
     viewModel: HomeViewModel = rememberHomeViewModel(),
     onContinueRoutine: (ActivityType) -> Unit = {},
+    onOpenHistory: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -94,6 +95,7 @@ fun HomeScreen(
                     QuickActionHeader(
                         onCreateHabit = viewModel::onCreateHabitRequested,
                         onCreateTask = viewModel::onCreateTaskRequested,
+                        onOpenHistory = onOpenHistory,
                     )
                 }
                 state.summary.activeRoutine?.let { routine ->
