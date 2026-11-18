@@ -1,6 +1,6 @@
 package com.ego.mobile.app.theme
 
-// Typography tokens baseados na escala Material 3
-object Typography {
-    // Escala de tamanhos — Material 3 já disponível
-}
+import com.ego.mobile.core.ui.theme.EgoTypography
+
+// Typealias / compatibilidade para tokens de tipografia da Spec 9
+val Typography = EgoTypography
