@@ -7,9 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ego.mobile.data.local.EgoDatabaseProvider
 import com.ego.mobile.data.repository.WorkoutRepositoryImpl
+import com.ego.mobile.data.repository.WorkoutTemplateRepositoryImpl
 import com.ego.mobile.domain.model.WorkoutExercise
 import com.ego.mobile.domain.model.WorkoutSession
+import com.ego.mobile.domain.model.WorkoutTemplate
 import com.ego.mobile.domain.repository.WorkoutRepository
+import com.ego.mobile.domain.repository.WorkoutTemplateRepository
 import com.ego.mobile.domain.usecase.GetWorkoutStatisticsUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -30,6 +33,7 @@ class WorkoutViewModel(
     private val repository: WorkoutRepository,
     private val clock: () -> Long = System::currentTimeMillis,
     private val statisticsUseCase: GetWorkoutStatisticsUseCase = GetWorkoutStatisticsUseCase(repository),
+    private val templateRepository: WorkoutTemplateRepository? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(WorkoutUiState(isLoading = true))
@@ -39,15 +43,25 @@ class WorkoutViewModel(
     val events: Flow<WorkoutEvent> = eventChannel.receiveAsFlow()
 
     init {
+        val templates = templateRepository?.observeTemplates() ?: kotlinx.coroutines.flow.flowOf(emptyList())
         combine(
             repository.getActiveSession(),
             repository.getCompletedSessions(),
             timerFlow(),
-        ) { active, completed, now ->
+            templates,
+        ) { values ->
+            @Suppress("UNCHECKED_CAST")
+            val active = values[0] as WorkoutSession?
+            @Suppress("UNCHECKED_CAST")
+            val completed = values[1] as List<WorkoutSession>
+            val now = values[2] as Long
+            @Suppress("UNCHECKED_CAST")
+            val savedTemplates = values[3] as List<WorkoutTemplate>
             val elapsed = active?.durationMillis(now) ?: 0L
             _uiState.value.copy(
                 activeSession = active,
                 completedSessions = completed,
+                templates = savedTemplates,
                 stats = statisticsUseCase.fromSessions(completed),
                 elapsedTimeMillis = elapsed,
                 isLoading = false,
@@ -60,6 +74,36 @@ class WorkoutViewModel(
         }.onEach { state ->
             _uiState.value = state
         }.launchIn(viewModelScope)
+    }
+
+    fun saveTemplate(template: WorkoutTemplate) {
+        val templates = templateRepository ?: return
+        viewModelScope.launch {
+            val result = if (template.id == 0L) templates.saveTemplate(template).map { Unit }
+            else templates.updateTemplate(template)
+            result.onFailure { _uiState.value = _uiState.value.copy(errorMessage = it.message ?: "Não foi possível salvar o modelo.") }
+        }
+    }
+
+    fun deleteTemplate(templateId: Long) {
+        val templates = templateRepository ?: return
+        viewModelScope.launch {
+            templates.deleteTemplate(templateId).onFailure {
+                _uiState.value = _uiState.value.copy(errorMessage = it.message ?: "Não foi possível excluir o modelo.")
+            }
+        }
+    }
+
+    fun startFromTemplate(templateId: Long) {
+        val templates = templateRepository ?: return
+        if (_uiState.value.activeSession != null) return
+        viewModelScope.launch {
+            templates.applyTemplate(templateId, clock()).onSuccess {
+                eventChannel.send(WorkoutEvent.SessionStarted)
+            }.onFailure {
+                _uiState.value = _uiState.value.copy(errorMessage = it.message ?: "Não foi possível iniciar pelo modelo.")
+            }
+        }
     }
 
     fun startSession(title: String) {
@@ -199,6 +243,12 @@ fun rememberWorkoutViewModel(): WorkoutViewModel {
     val context = LocalContext.current.applicationContext
     return remember(context) {
         val database = EgoDatabaseProvider.getDatabase(context)
-        WorkoutViewModel(WorkoutRepositoryImpl(database.workoutDao()))
+        val workoutRepository = WorkoutRepositoryImpl(database.workoutDao())
+        WorkoutViewModel(
+            repository = workoutRepository,
+            templateRepository = WorkoutTemplateRepositoryImpl(
+                database.trainingModelDao(), database.trainingModelExerciseDao(), workoutRepository,
+            ),
+        )
     }
 }

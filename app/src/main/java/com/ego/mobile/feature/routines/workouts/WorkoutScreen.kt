@@ -34,11 +34,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.testTag
 import com.ego.mobile.domain.model.WorkoutSessionStatus
 import com.ego.mobile.feature.routines.workouts.components.ActiveWorkoutView
 import com.ego.mobile.feature.routines.workouts.components.AddExerciseDialog
 import com.ego.mobile.feature.routines.workouts.components.WorkoutHistoryView
 import com.ego.mobile.feature.routines.workouts.components.formatDuration
+import com.ego.mobile.feature.routines.workouts.components.WorkoutStatisticsSection
+import com.ego.mobile.feature.routines.workouts.components.WorkoutTemplatesSection
 
 @Composable
 fun WorkoutScreen(
@@ -138,7 +141,8 @@ fun WorkoutScreen(
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(16.dp),
+                            .padding(16.dp)
+                            .testTag("workout_overview"),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
                         // Banner de Sessão Ativa (se houver)
@@ -216,6 +220,18 @@ fun WorkoutScreen(
                                 }
                             }
                         }
+
+                        item {
+                            WorkoutTemplatesSection(
+                                templates = uiState.templates,
+                                hasActiveSession = activeSession != null,
+                                onStart = viewModel::startFromTemplate,
+                                onSave = viewModel::saveTemplate,
+                                onDelete = viewModel::deleteTemplate,
+                            )
+                        }
+
+                        item { WorkoutStatisticsSection(stats = uiState.stats) }
 
                         // Histórico de Treinos
                         item {

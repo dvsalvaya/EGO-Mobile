@@ -1,11 +1,13 @@
 package com.ego.mobile.feature.routines.workouts
 
 import com.ego.mobile.domain.model.WorkoutSession
+import com.ego.mobile.domain.model.WorkoutTemplate
 import com.ego.mobile.domain.usecase.GetWorkoutStatisticsUseCase
 
 data class WorkoutUiState(
     val activeSession: WorkoutSession? = null,
     val completedSessions: List<WorkoutSession> = emptyList(),
+    val templates: List<WorkoutTemplate> = emptyList(),
     val stats: GetWorkoutStatisticsUseCase.Statistics = GetWorkoutStatisticsUseCase.Statistics(0, 0.0, emptyList()),
     val elapsedTimeMillis: Long = 0L,
     val isLoading: Boolean = false,

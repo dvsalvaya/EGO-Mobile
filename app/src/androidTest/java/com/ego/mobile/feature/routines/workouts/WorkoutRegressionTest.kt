@@ -4,11 +4,13 @@ import android.content.Context
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.ego.mobile.MainActivity
@@ -17,6 +19,9 @@ import com.ego.mobile.data.local.entity.WorkoutExerciseEntity
 import com.ego.mobile.data.local.entity.WorkoutSessionEntity
 import com.ego.mobile.data.repository.WorkoutRepositoryImpl
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performScrollToNode
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -85,10 +90,11 @@ class WorkoutRegressionTest {
         }
 
         composeRule.waitUntil(5_000) { !viewModel.uiState.value.isLoading }
+        composeRule.onNodeWithTag("workout_overview").performScrollToNode(hasText("Histórico de Treinos"))
         composeRule.onNodeWithText("Histórico de Treinos").assertIsDisplayed()
         repeat(3) { index ->
             composeRule.onNodeWithText("Treino de regressão ${index + 1}").assertIsDisplayed()
-            composeRule.onNodeWithText("Exercício ${index + 1}").assertIsDisplayed()
+            composeRule.onAllNodesWithText("Exercício ${index + 1}", substring = false).assertCountEquals(2)
         }
     }
 }
