@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.ego.mobile.domain.model.HaircareOccurrence
 import com.ego.mobile.domain.model.HaircareOccurrenceStatus
@@ -182,7 +183,8 @@ private fun ActiveRoutineScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .testTag("haircare_screen_list"),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {

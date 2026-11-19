@@ -6,6 +6,8 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -36,6 +38,7 @@ class HaircareHistoryListTest {
             viewModel.uiState.value is HaircareUiState.ActiveRoutine
         }
 
+        composeRule.onNodeWithTag("haircare_screen_list").performScrollToIndex(6)
         composeRule.onNodeWithText("Histórico de cuidados").assertIsDisplayed()
         composeRule.onNodeWithText("Nutrição concluída").assertIsDisplayed()
         composeRule.onNodeWithText("Reconstrução concluída").assertIsDisplayed()
