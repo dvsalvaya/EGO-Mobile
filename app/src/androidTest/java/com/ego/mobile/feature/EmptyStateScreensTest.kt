@@ -9,6 +9,9 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStore
@@ -183,10 +186,14 @@ class EmptyStateScreensTest {
         }
 
         composeRule.waitUntil(5_000) { !viewModel.uiState.value.isLoading }
-        composeRule.onNodeWithText("Nenhum treino concluído ainda. Inicie seu primeiro treino acima!")
+        composeRule.onNodeWithTag("workout_overview")
+            .performScrollToNode(hasText("Nenhum treino concluído ainda"))
+        composeRule.onNodeWithText("Nenhum treino concluído ainda", substring = false)
             .assertIsDisplayed()
-        composeRule.onNodeWithText("Iniciar Treino").performClick()
-        composeRule.onNodeWithText("Novo Treino").assertIsDisplayed()
+        composeRule.onNodeWithText("Começar primeiro treino").performClick()
+        composeRule.onNodeWithTag("workout_overview")
+            .performScrollToNode(hasText("Iniciar Treino"))
+        composeRule.onNodeWithText("Iniciar Treino").assertIsDisplayed()
     }
 
     @Test

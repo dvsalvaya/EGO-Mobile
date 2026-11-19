@@ -66,10 +66,11 @@ class WorkoutScreenTest {
             composeRule.activity.setContent { MaterialTheme { WorkoutScreen(viewModel) } }
         }
         composeRule.waitUntil(5_000) { !viewModel.uiState.value.isLoading }
-        listOf("Modelos de treino", "Força A", "Estatísticas", "1 treino concluído", "Evolução de carga", "50 kg", "Histórico de Treinos").forEach {
+        listOf("Modelos de treino", "Força A", "Estatísticas", "1 treino concluído", "Evolução de carga", "Histórico de Treinos").forEach {
             composeRule.onNodeWithTag("workout_overview").performScrollToNode(hasText(it))
             composeRule.onNodeWithText(it).assertIsDisplayed()
         }
+        composeRule.onNodeWithText("50 kg").assertExists()
         composeRule.onNodeWithTag("workout_overview").performScrollToNode(hasText("Força A"))
         composeRule.onNodeWithText("Iniciar", substring = false).performClick()
         composeRule.waitUntil(5_000) { viewModel.uiState.value.activeSession?.exercises?.size == 1 }

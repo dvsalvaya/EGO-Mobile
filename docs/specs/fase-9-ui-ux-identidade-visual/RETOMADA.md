@@ -1,5 +1,9 @@
 # Retomada da Spec 9
 
+Atualização após TASK-12 no HEAD integrado `1d3a254`: regressão final `testDebugUnitTest connectedDebugAndroidTest assembleDebug` passou, com 54/54 testes instrumentados. A inspeção visual em 412 dp/font scale 1.3 encontrou truncamento do acesso “Ver histórico” na Home; `QuickActionHeader` agora quebra o acesso em uma linha própria quando a fonte é ampliada. As capturas e os limites estão em [TASK-12](reports/TASK-12.md) e `evidence/TASK-12-*.png`. O AVD API 37 foi desligado e liberado.
+
+Os metadados formais permanecem inalterados: `spec.md` está `DRAFT` e `plan.md` mantém decisão técnica pendente. TASK-12 foi verificada como atividade técnica executada; isso não encerra a fase nem apaga a lacuna histórica de RED da TASK-10.
+
 A rodada foi retomada a partir da base integrada `36503dd` no branch de trabalho deste worktree. Os cartões vazios de hábitos e tarefas da Home foram compactados e a validação visual de AC-15 foi concluída nos três perfis. O AVD API 37 foi desligado e liberado ao final.
 
 ## Trabalho integrado
@@ -11,7 +15,8 @@ A rodada foi retomada a partir da base integrada `36503dd` no branch de trabalho
 
 ## Próxima sessão
 
-1. Usar as capturas atualizadas de TASK-14 como referência da Home compacta; alterações futuras em estados vazios devem manter a rolagem e semântica documentadas.
-2. Após o aceite da V1, atualizar os worktrees de Tarefas, Treinos e Cabelo a partir da integração e retomar TASK-07, TASK-10 e TASK-11 em paralelo. TASK-12 encerra a fase com a regressão completa.
+1. Obter aprovação explícita da spec e do plano e reconciliar os status de TASK-02, TASK-05, TASK-07, TASK-08, TASK-09, TASK-10 e TASK-14 somente com evidência/autorização apropriadas; TASK-12 não declara a fase `VERIFIED`.
+2. Preservar a lacuna documentada de RED da TASK-10 e decidir a revisão/execução de RED antes de qualquer declaração formal de TDD completo.
+3. Usar capturas de TASK-12 e TASK-14 como referência de responsividade e semântica. Estados populados e leitor de tela real permanecem sem inspeção manual nesta rodada.
 
 [Plano técnico](plan.md) · [Tarefas e dependências](tasks.md)
