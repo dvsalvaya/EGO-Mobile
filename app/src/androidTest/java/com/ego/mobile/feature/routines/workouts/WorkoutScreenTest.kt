@@ -21,6 +21,7 @@ import com.ego.mobile.data.repository.WorkoutTemplateRepositoryImpl
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -69,6 +70,25 @@ class WorkoutScreenTest {
         listOf("Modelos de treino", "Força A", "Estatísticas", "1 treino concluído", "Evolução de carga", "Histórico de Treinos").forEach {
             composeRule.onNodeWithTag("workout_overview").performScrollToNode(hasText(it))
             composeRule.onNodeWithText(it).assertIsDisplayed()
+        }
+        composeRule.onNodeWithTag("workout_overview").performScrollToNode(hasText("Modelos de treino"))
+        composeRule.onNodeWithText("Criar modelo").assertIsDisplayed()
+        composeRule.onNodeWithText("Criar modelo").performClick()
+        composeRule.onNodeWithText("Nome do modelo").assertIsDisplayed()
+        composeRule.onNodeWithText("Cancelar").performClick()
+        composeRule.onNodeWithTag("workout_overview").performScrollToNode(hasText("Força A"))
+        val actions = listOf("Iniciar", "Editar", "Excluir").map { label ->
+            composeRule.onNodeWithText(label, substring = false).fetchSemanticsNode().boundsInRoot
+        }
+        val minimumTargetPx = 48f * composeRule.activity.resources.displayMetrics.density
+        actions.forEach { bounds ->
+            assertTrue("Action target must be at least 48dp wide: $bounds", bounds.width >= minimumTargetPx)
+            assertTrue("Action target must be at least 48dp high: $bounds", bounds.height >= minimumTargetPx)
+        }
+        actions.zipWithNext().forEach { (first, second) ->
+            val overlaps = first.left < second.right && first.right > second.left &&
+                first.top < second.bottom && first.bottom > second.top
+            assertTrue("Template actions must not overlap: $first / $second", !overlaps)
         }
         composeRule.onNodeWithText("50 kg").assertExists()
         composeRule.onNodeWithTag("workout_overview").performScrollToNode(hasText("Força A"))

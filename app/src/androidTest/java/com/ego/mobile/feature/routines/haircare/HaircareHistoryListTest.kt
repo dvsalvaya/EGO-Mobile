@@ -70,6 +70,12 @@ class HaircareHistoryListTest {
         composeRule.onNodeWithText("Etapas de 12/11").assertIsDisplayed()
         composeRule.onNodeWithText("Nutrição concluída").assertIsDisplayed()
 
+        val selectedDay = composeRule.onNodeWithContentDescription("12 de Novembro de 2026, 1 concluída")
+            .fetchSemanticsNode().boundsInRoot
+        val minimumTargetPx = 48f * composeRule.activity.resources.displayMetrics.density
+        assertTrue("Calendar day target must be at least 48dp wide: $selectedDay", selectedDay.width >= minimumTargetPx)
+        assertTrue("Calendar day target must be at least 48dp high: $selectedDay", selectedDay.height >= minimumTargetPx)
+
         composeRule.onNodeWithContentDescription("Próximo mês").performClick()
         composeRule.onNodeWithText("Dezembro 2026").assertIsDisplayed()
     }

@@ -183,7 +183,7 @@ private fun ActiveRoutineScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(horizontal = 12.dp, vertical = 16.dp)
             .testTag("haircare_screen_list"),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {

@@ -68,7 +68,7 @@ fun HaircareCalendar(
                             if (completed > 0) append(", $completed concluída${if (completed == 1) "" else "s"}")
                         }
                         Column(
-                            modifier = Modifier.weight(1f).aspectRatio(0.9f).padding(1.dp)
+                            modifier = Modifier.weight(1f).aspectRatio(0.9f)
                                 .background(if (date == selectedDate) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface, CircleShape)
                                 .clickable { onSelectDate(date) }
                                 .semantics { contentDescription = description },

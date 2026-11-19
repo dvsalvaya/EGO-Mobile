@@ -2,8 +2,11 @@ package com.ego.mobile.feature.routines.workouts.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -38,6 +41,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun WorkoutTemplatesSection(
     templates: List<WorkoutTemplate>,
@@ -49,10 +53,9 @@ fun WorkoutTemplatesSection(
     var editing by remember { mutableStateOf<WorkoutTemplate?>(null) }
     var confirmDelete by remember { mutableStateOf<WorkoutTemplate?>(null) }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SectionHeader(title = "Modelos de treino")
+        SectionHeader(title = "Modelos de treino", action = {
             TextButton(onClick = { editing = WorkoutTemplate(name = "Novo modelo") }) { Text("Criar modelo") }
-        }
+        })
         if (templates.isEmpty()) {
             Text("Nenhum modelo salvo. Crie um modelo para iniciar com seus exercícios.",
                 style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -62,12 +65,26 @@ fun WorkoutTemplatesSection(
                     Text(template.name, style = MaterialTheme.typography.titleMedium)
                     Text(template.orderedExercises.joinToString(" • ") { "${it.name} · ${it.setsCount} séries" },
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(enabled = !hasActiveSession, onClick = { onStart(template.id) }) {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Button(
+                            enabled = !hasActiveSession,
+                            onClick = { onStart(template.id) },
+                            modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+                        ) {
                             Text(if (hasActiveSession) "Treino ativo" else "Iniciar")
                         }
-                        OutlinedButton(onClick = { editing = template }) { Text("Editar") }
-                        TextButton(onClick = { confirmDelete = template }) { Text("Excluir") }
+                        OutlinedButton(
+                            onClick = { editing = template },
+                            modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+                        ) { Text("Editar") }
+                        TextButton(
+                            onClick = { confirmDelete = template },
+                            modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+                        ) { Text("Excluir") }
                     }
                 }
             }

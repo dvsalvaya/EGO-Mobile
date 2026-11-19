@@ -21,13 +21,13 @@ Os portões de aprovação da `docs/specs/README.md` foram atendidos para inicia
 | `TASK-07` | Agrupar Tarefas por prazo e integrar o painel de detalhes | `VERIFIED` | `TASK-01`, `TASK-03`, RF-06 da Spec 10 |
 | `TASK-08` | Persistir modelos locais de treino com migration Room | `VERIFIED` | Nenhuma |
 | `TASK-09` | Calcular estatísticas e evolução de carga por exercício | `VERIFIED` | Nenhuma |
-| `TASK-10` | Atualizar tela Treinos com modelos, estatísticas e sessão atual | `PENDING` | `TASK-02`, `TASK-03`, `TASK-08`, `TASK-09` |
+| `TASK-10` | Atualizar tela Treinos com modelos, estatísticas e sessão atual | `VERIFIED` | `TASK-02`, `TASK-03`, `TASK-08`, `TASK-09` |
 | `TASK-11` | Adicionar calendário mensal à tela Cabelo | `VERIFIED` | `TASK-02`, `TASK-03` |
 | `TASK-12` | Verificar a integração da fase completa | `VERIFIED` | `TASK-07`, `TASK-10`, `TASK-11`, `TASK-14` |
 | `TASK-13` | Fechar períodos, preservar previsões e corrigir histórico de hábitos | `VERIFIED` | Base de hábitos da Spec 10 |
 | `TASK-14` | Validar a V1 em Início, Hábitos e Histórico | `VERIFIED` | `TASK-05`, `TASK-06`, `TASK-13`, RF-06 da Spec 10 |
 
-> `TASK-10` permanece `PENDING`: o relatório registra implementação e testes instrumentados, mas confirma que não houve execução RED comportamental antes da implementação. A integração TASK-12 não corrige retroativamente essa evidência. A conclusão da fase também permanece pendente de inspeção manual populada/acessibilidade indicada em [RETOMADA.md](RETOMADA.md).
+> `TASK-10` está `VERIFIED` tecnicamente com base na reprodução retrospectiva documentada em [TASK-10](reports/TASK-10.md): RED comportamental na base `7b75eff` e GREEN em `5b4ec98` (51/51 instrumentados). Isso não significa que o RED tenha ocorrido antes da implementação na cronologia original. A inspeção manual/acessibilidade adicional e os limites de aceite global estão registrados em [RETOMADA.md](RETOMADA.md) e no adendo de [TASK-12](reports/TASK-12.md).
 
 ## Detalhamento
 

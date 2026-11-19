@@ -93,6 +93,8 @@ class WorkoutRegressionTest {
         composeRule.onNodeWithTag("workout_overview").performScrollToNode(hasText("Histórico de Treinos"))
         composeRule.onNodeWithText("Histórico de Treinos").assertIsDisplayed()
         repeat(3) { index ->
+            composeRule.onNodeWithTag("workout_overview")
+                .performScrollToNode(hasText("Treino de regressão ${index + 1}"))
             composeRule.onNodeWithText("Treino de regressão ${index + 1}").assertIsDisplayed()
             composeRule.onAllNodesWithText("Exercício ${index + 1}", substring = false).assertCountEquals(2)
         }

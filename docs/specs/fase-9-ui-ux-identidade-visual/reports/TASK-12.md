@@ -37,3 +37,30 @@ Capturas em `evidence/`: `TASK-12-home-360.png`, `TASK-12-home-412.png`, `TASK-1
 ## Portões formais preservados
 
 `spec.md` continua `DRAFT` e `plan.md` continua com decisão técnica pendente. A autorização direta para executar TASK-12 permitiu esta verificação técnica, mas não constitui aprovação do responsável pelo produto nem aprovação técnica formal do plano. Os estados/metadados desses documentos não foram promovidos.
+
+## Adendo — auditoria integrada e AC-15 (19/11/2026)
+
+Este adendo complementa o retrato do commit `1d3a254`; as afirmações de que a aprovação formal e a inspeção populada/TalkBack estavam pendentes descreviam corretamente aquela execução. Depois, a spec foi aprovada (`9e2f040`), o plano foi revisado e aprovado, e a reprodução retrospectiva de TASK-10 foi integrada em `399d732`. O RED comportamental ocorreu na base `7b75eff` e o GREEN em `5b4ec98` (51/51); continua explicitamente retrospectivo, sem alegar RED pré-implementação na cronologia original. O status técnico de TASK-10 foi atualizado em `tasks.md`.
+
+### Inspeção populada, leitor de tela e correções
+
+No AVD `Medium_Phone_API_37.0`, com fluxos populados em Treinos, Cabelo, Hábitos e Tarefas, habilitamos TalkBack e inspecionamos a árvore de acessibilidade, labels, ações e foco visual; logs mostraram pedidos de síntese pt-BR. No calendário após a correção, células mediram 48 dp em 360 dp/font scale 1.3, com descrição “19 de Novembro de 2026, 1 pendente”; depois de rolar, as ações “Registrar execução” e “Reagendar” ficaram visíveis e focáveis. Não reivindicamos avaliação humana da inteligibilidade do áudio nem inspeção de todas as telas/gestos ou aparelho físico. Capturas das telas populadas estão em [workouts 360 dp/font scale 1.3](../evidence/TASK-15-workouts-360-font130-talkback.png), [calendário capilar populado](../evidence/TASK-15-haircare-360-font130-talkback.png) e [ações após rolagem](../evidence/TASK-15-haircare-360-font130-talkback-scrolled.png).
+
+A inspeção e os testes encontraram estes defeitos concretos, já corrigidos:
+
+| Área | Defeito observado | Correção e evidência |
+|---|---|---|
+| Treinos | Em 412 dp, o título de seção ocupava a largura inteira e ocultava “Criar modelo”; em 360 dp/font scale 1.3 as ações dos modelos podiam sobrepor e ficavam abaixo de 48 dp. | Ação movida para slot de `SectionHeader`; `FlowRow` e altura mínima de 48 dp. `WorkoutScreenTest` verifica visibilidade, editor, dimensões e ausência de sobreposição. |
+| Cabelo | Células do calendário ficavam com cerca de 45 dp em 360 dp/font scale 1.3. | Reduzido padding horizontal da lista para 12 dp e removido padding interno da célula. `HaircareHistoryListTest` mede célula ≥48 dp. |
+| Regressão Treinos | Teste tentava exigir que três linhas do histórico estivessem simultaneamente visíveis após rolar apenas até o cabeçalho. | `WorkoutRegressionTest` agora rola até cada linha antes de verificar visibilidade, sem enfraquecer a asserção de existência/exibição. Focado: 2/2. |
+
+### Revalidação final desta integração
+
+| Comando | Resultado |
+|---|---|
+| `ANDROID_HOME=<SDK> .\gradlew.bat :app:testDebugUnitTest :app:connectedDebugAndroidTest :app:assembleDebug` | `BUILD SUCCESSFUL`; 54/54 instrumentados no AVD API 37. |
+| `:app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.ego.mobile.feature.routines.workouts.WorkoutRegressionTest` | `BUILD SUCCESSFUL`; 2/2, inclusive o teste de histórico corrigido. |
+| Testes direcionados em perfil 360 dp/font scale 1.3 | `WorkoutScreenTest` e `HaircareHistoryListTest` passaram após comprovar os defeitos e aplicar as correções; repetição conjunta final: 3/3. |
+| `git diff --check` | Sem erros de whitespace. |
+
+O perfil padrão foi usado na regressão completa. Duas primeiras tentativas durante a sessão com TalkBack habilitado interferiram em testes de navegação/formulários; não foram contabilizadas como regressão do produto. TalkBack foi desabilitado e removido da lista de serviços antes da execução final, que passou. A avaliação de labels/foco com TalkBack permaneceu uma sessão separada. A aprovação da spec/plano não é aceite de produto implementado: `RETOMADA.md` registra o estado técnico e aguarda confirmação explícita do usuário para o aceite global. O AVD foi restaurado, TalkBack desligado e emulador liberado.

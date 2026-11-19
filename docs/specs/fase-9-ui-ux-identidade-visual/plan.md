@@ -40,3 +40,9 @@ Riscos residuais: TASK-10 precisa fechar sua evidência TDD; inspeção manual d
 ## Decisão
 
 **APROVADO.** A especificação agora tem aprovação explícita registrada; arquitetura, cobertura e sequência são compatíveis com a base e não exigem nova dependência. As lacunas acima são condições de verificação/fechamento, não mudanças de plano. Manter a fase em `IN_PROGRESS` enquanto TASK-10 e as verificações residuais estiverem abertas; não marcar `VERIFIED` até toda evidência exigida estar concluída e revisada.
+
+## Reavaliação de evidências (19/11/2026)
+
+A integração posterior acrescentou reprodução retrospectiva de RED para TASK-10 (falha comportamental na base `7b75eff`; GREEN em `5b4ec98`, 51/51 instrumentados), inspeção populada com TalkBack ativo e correção de alvos responsivos em Treinos/Cabelo. A lacuna histórica permanece: RED não foi executado antes da implementação original. Os testes focados em 360 dp/font scale 1.3 confirmaram os alvos corrigidos; a suíte integrada e o estado final dos comandos desta reavaliação são registrados no adendo de [TASK-12](reports/TASK-12.md).
+
+**Decisão técnica mantida: APROVADO.** A revisão destas evidências não altera requisitos nem a aprovação de produto da especificação. As inconsistências que impediam fechar TASK-10 e alguns alvos de toque foram resolvidas; o aceite técnico da fase só pode ser elevado quando a suíte final passar e a cobertura AC-01–AC-18 estiver reconciliada. Aprovação da especificação não equivale a aceite de implementação pelo usuário.
