@@ -1,10 +1,10 @@
 # Decomposição de tarefas — Fase 9: UI/UX e identidade visual
 
 - **Feature ID:** `fase-9-ui-ux-identidade-visual`
-- **Especificação:** `docs/specs/fase-9-ui-ux-identidade-visual/spec.md` (Status: `DRAFT`)
-- **Status das tarefas:** `PENDING` até a aprovação explícita da especificação e do plano técnico.
+- **Especificação:** `docs/specs/fase-9-ui-ux-identidade-visual/spec.md` (Status: `APPROVED`)
+- **Status das tarefas:** reconciliados com os relatórios após aprovação explícita da especificação em 19/11/2026 e aprovação técnica do plano nesta revisão. `VERIFIED` indica evidência da tarefa correspondente, não aceite global da fase.
 
-Esta decomposição não autoriza implementação enquanto os portões da `docs/specs/README.md` não forem atendidos. Em cada tarefa com código, seguir TDD estrito: executar primeiro teste que falhe pelo comportamento esperado (RED), implementar o mínimo necessário (GREEN), refatorar com testes verdes (REFACTOR). Falha de compilação/configuração/ambiente não conta como RED.
+Os portões de aprovação da `docs/specs/README.md` foram atendidos para iniciar implementação. Em cada tarefa com código, seguir TDD estrito: executar primeiro teste que falhe pelo comportamento esperado (RED), implementar o mínimo necessário (GREEN), refatorar com testes verdes (REFACTOR). Falha de compilação/configuração/ambiente não conta como RED.
 
 > **Nota de execução:** TASK-04 teve o critério alterado para a grade da V1 e foi revalidada; ver `reports/TASK-04.md`. TASK-08 e TASK-09 preservam as evidências anteriores em seus relatórios.
 
@@ -12,20 +12,22 @@ Esta decomposição não autoriza implementação enquanto os portões da `docs/
 
 | ID | Tarefa | Status | Dependências |
 |---|---|---|---|
-| `TASK-01` | Criar tokens do tema escuro monocromático | `IMPLEMENTED` | Nenhuma |
-| `TASK-02` | Atualizar navegação principal e acesso ao Histórico interno | `PENDING` | `TASK-01` |
+| `TASK-01` | Criar tokens do tema escuro monocromático | `VERIFIED` | Nenhuma |
+| `TASK-02` | Atualizar navegação principal e acesso ao Histórico interno | `VERIFIED` | `TASK-01` |
 | `TASK-03` | Padronizar componentes comuns de seção e estado vazio | `VERIFIED` | `TASK-01` |
 | `TASK-04` | Calcular grade de hábitos previstos em sete dias | `VERIFIED` | `TASK-13` |
-| `TASK-05` | Atualizar Home com indicadores e listas acionáveis do dia | `PENDING` | `TASK-02`, `TASK-03`, `TASK-04` |
+| `TASK-05` | Atualizar Home com indicadores e listas acionáveis do dia | `VERIFIED` | `TASK-02`, `TASK-03`, `TASK-04` |
 | `TASK-06` | Atualizar Hábitos com metas, dias preferidos e ações | `VERIFIED` | `TASK-01`, `TASK-03`, `TASK-13` |
-| `TASK-07` | Agrupar Tarefas por prazo e integrar o painel de detalhes | `PENDING` | `TASK-01`, `TASK-03`, RF-06 da Spec 10 |
-| `TASK-08` | Persistir modelos locais de treino com migration Room | `IN_PROGRESS` | Nenhuma |
-| `TASK-09` | Calcular estatísticas e evolução de carga por exercício | `IN_PROGRESS` | Nenhuma |
+| `TASK-07` | Agrupar Tarefas por prazo e integrar o painel de detalhes | `VERIFIED` | `TASK-01`, `TASK-03`, RF-06 da Spec 10 |
+| `TASK-08` | Persistir modelos locais de treino com migration Room | `VERIFIED` | Nenhuma |
+| `TASK-09` | Calcular estatísticas e evolução de carga por exercício | `VERIFIED` | Nenhuma |
 | `TASK-10` | Atualizar tela Treinos com modelos, estatísticas e sessão atual | `PENDING` | `TASK-02`, `TASK-03`, `TASK-08`, `TASK-09` |
 | `TASK-11` | Adicionar calendário mensal à tela Cabelo | `VERIFIED` | `TASK-02`, `TASK-03` |
 | `TASK-12` | Verificar a integração da fase completa | `VERIFIED` | `TASK-07`, `TASK-10`, `TASK-11`, `TASK-14` |
 | `TASK-13` | Fechar períodos, preservar previsões e corrigir histórico de hábitos | `VERIFIED` | Base de hábitos da Spec 10 |
-| `TASK-14` | Validar a V1 em Início, Hábitos e Histórico | `PENDING` | `TASK-05`, `TASK-06`, `TASK-13`, RF-06 da Spec 10 |
+| `TASK-14` | Validar a V1 em Início, Hábitos e Histórico | `VERIFIED` | `TASK-05`, `TASK-06`, `TASK-13`, RF-06 da Spec 10 |
+
+> `TASK-10` permanece `PENDING`: o relatório registra implementação e testes instrumentados, mas confirma que não houve execução RED comportamental antes da implementação. A integração TASK-12 não corrige retroativamente essa evidência. A conclusão da fase também permanece pendente de inspeção manual populada/acessibilidade indicada em [RETOMADA.md](RETOMADA.md).
 
 ## Detalhamento
 
