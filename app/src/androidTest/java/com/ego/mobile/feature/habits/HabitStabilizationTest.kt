@@ -112,7 +112,7 @@ class HabitStabilizationTest {
         composeRule.waitUntil(3_000) { composeRule.onAllNodes(hasText("Meta semanal: 3 vezes")).fetchSemanticsNodes().isNotEmpty() }
         composeRule.onNodeWithContentDescription("terça-feira, não selecionado").performScrollTo().performClick()
         composeRule.onNodeWithContentDescription("quinta-feira, não selecionado").performScrollTo().performClick()
-        composeRule.onNodeWithText("Alongamento").assertIsDisplayed()
+        composeRule.onNodeWithText("Alongamento").performScrollTo().assertIsDisplayed()
         androidx.test.espresso.Espresso.closeSoftKeyboard()
         composeRule.onNodeWithText("Salvar").performClick()
         composeRule.onNodeWithText("Informe um nome.").assertDoesNotExist()

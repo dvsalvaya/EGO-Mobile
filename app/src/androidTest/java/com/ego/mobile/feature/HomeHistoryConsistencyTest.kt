@@ -132,9 +132,7 @@ class HomeHistoryConsistencyTest {
             val homeState = homeViewModel.uiState.value as? HomeUiState.Content
             val historyItems = historyViewModel.uiState.value.items
             val tasksState = tasksViewModel.tasksUiState.value
-            homeState?.summary?.todayHabits?.any {
-                it.habitId == habitId && it.status == HabitOccurrenceStatus.COMPLETED
-            } == true &&
+            homeState?.summary?.todayHabits?.none { it.habitId == habitId } == true &&
                 historyItems.any { it.title == "Alongar" } &&
                 historyItems.any { it.title == "Revisar agenda" } &&
                 tasksState.openTasks.none { it.id == taskId } &&

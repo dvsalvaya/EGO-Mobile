@@ -85,7 +85,7 @@ class EmptyStateScreensTest {
         composeRule.onNodeWithText("Nenhum hábito cadastrado").assertIsDisplayed()
         composeRule.onNodeWithText("Crie um hábito para começar a acompanhar sua rotina.").assertIsDisplayed()
         composeRule.onNodeWithText("Adicionar hábito").performClick()
-        composeRule.onNodeWithText("Novo hábito").assertIsDisplayed()
+        composeRule.onAllNodesWithText("Novo hábito").assertCountEquals(2)
     }
 
     @Test

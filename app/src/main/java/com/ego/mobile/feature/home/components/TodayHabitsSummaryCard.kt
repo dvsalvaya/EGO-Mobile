@@ -45,7 +45,8 @@ fun TodayHabitsSummaryCard(
                     title = "Tudo em dia",
                     message = "Quando houver hábitos previstos para hoje, eles aparecerão aqui.",
                     modifier = Modifier.fillMaxWidth(),
-                    iconContentDescription = null,
+                    icon = { Text("✓", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                    iconContentDescription = "Sem pendências",
                 )
             } else {
                 habits.forEach { habit ->

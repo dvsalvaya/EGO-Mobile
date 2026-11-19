@@ -46,7 +46,8 @@ fun PriorityTasksCard(
                     title = "Tudo em dia",
                     message = "Tarefas sem prazo e futuras ficam disponíveis na aba Tarefas.",
                     modifier = Modifier.fillMaxWidth(),
-                    iconContentDescription = null,
+                    icon = { Text("✓", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                    iconContentDescription = "Sem pendências",
                 )
             } else {
                 tasks.forEach { task ->

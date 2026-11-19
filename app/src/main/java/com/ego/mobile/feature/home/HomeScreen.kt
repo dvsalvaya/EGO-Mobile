@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.testTag
 import com.ego.mobile.domain.model.ActivityType
 import com.ego.mobile.domain.model.HabitDayGrid
 import com.ego.mobile.domain.model.HomeSummary
@@ -131,7 +132,7 @@ fun HomeScreen(
             ) { Text(state.message, color = MaterialTheme.colorScheme.error) }
             is HomeUiState.Content -> LazyColumn(
                 state = listState,
-                modifier = Modifier.fillMaxSize().padding(contentPadding),
+                modifier = Modifier.fillMaxSize().padding(contentPadding).testTag("home_list"),
                 contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {

@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ego.mobile.domain.model.HabitDayGrid
 import com.ego.mobile.domain.model.HabitGridBand
+import com.ego.mobile.core.ui.theme.EgoColors
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -32,12 +33,12 @@ fun HabitWeekGrid(grid: HabitDayGrid, modifier: Modifier = Modifier) {
                     Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(day.date.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, Locale.forLanguageTag("pt-BR")).take(1).uppercase())
                         val color = when (day.band) {
-                            HabitGridBand.NO_PREDICTION -> MaterialTheme.colorScheme.surfaceVariant
-                            HabitGridBand.IN_PROGRESS -> androidx.compose.ui.graphics.Color(0xFF6B7280)
-                            HabitGridBand.MISSED -> MaterialTheme.colorScheme.error
-                            HabitGridBand.LOW -> androidx.compose.ui.graphics.Color(0xFFF59E0B)
-                            HabitGridBand.PARTIAL -> androidx.compose.ui.graphics.Color(0xFF166534)
-                            HabitGridBand.COMPLETE -> androidx.compose.ui.graphics.Color(0xFF86EFAC)
+                            HabitGridBand.NO_PREDICTION -> EgoColors.HabitGrid.noForecast
+                            HabitGridBand.IN_PROGRESS -> EgoColors.HabitGrid.noForecast
+                            HabitGridBand.MISSED -> EgoColors.HabitGrid.zeroPercent
+                            HabitGridBand.LOW -> EgoColors.HabitGrid.lowProgress
+                            HabitGridBand.PARTIAL -> EgoColors.HabitGrid.mediumProgress
+                            HabitGridBand.COMPLETE -> EgoColors.HabitGrid.fullProgress
                         }
                         Surface(
                             modifier = Modifier.size(30.dp).semantics {
