@@ -12,7 +12,7 @@ class PlaceholderScreensTest {
 
         assertEquals(5, destinations.size)
         assertEquals(
-            listOf("Início", "Hábitos", "Tarefas", "Rotinas", "Histórico"),
+            listOf("Início", "Hábitos", "Tarefas", "Treinos", "Cabelo"),
             destinations.map { it.title },
         )
     }

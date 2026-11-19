@@ -1,12 +1,19 @@
 package com.ego.mobile.feature.tasks.components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -27,6 +34,7 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskFormDialog(
     task: Task?,
@@ -41,12 +49,14 @@ fun TaskFormDialog(
     var titleError by remember { mutableStateOf(false) }
     val descriptionError = description.length > 300
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(if (task == null) "Nova tarefa" else "Editar tarefa") },
-        text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding()
+                .padding(horizontal = 24.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(if (task == null) "Nova tarefa" else "Editar tarefa", style = MaterialTheme.typography.headlineSmall)
+            OutlinedTextField(
                     value = title,
                     onValueChange = { title = it.take(120); titleError = false },
                     label = { Text("Título") },
@@ -59,7 +69,7 @@ fun TaskFormDialog(
                     },
                     modifier = Modifier.fillMaxWidth(),
                 )
-                OutlinedTextField(
+            OutlinedTextField(
                     value = description,
                     onValueChange = { description = it.take(301) },
                     label = { Text("Descrição (opcional)") },
@@ -71,11 +81,11 @@ fun TaskFormDialog(
                     } else {
                         null
                     },
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    modifier = Modifier.fillMaxWidth(),
                 )
-                OutlinedButton(
+            OutlinedButton(
                     onClick = { showDatePicker = true },
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
                         if (hasDueDate) {
@@ -85,32 +95,28 @@ fun TaskFormDialog(
                         },
                     )
                 }
-                if (hasDueDate) {
-                    TextButton(
+            if (hasDueDate) {
+                TextButton(
                         onClick = { hasDueDate = false },
                         modifier = Modifier.align(androidx.compose.ui.Alignment.End),
-                    ) {
-                        Text("Remover prazo")
-                    }
+                ) {
+                    Text("Remover prazo")
                 }
             }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    titleError = title.trim().length !in 1..100
-                    if (!titleError && !descriptionError) {
-                        onSave(title.trim(), description.trim().takeIf(String::isNotEmpty), dueAt.takeIf { hasDueDate })
-                    }
-                },
-            ) {
-                Text("Salvar")
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 24.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                TextButton(onClick = onDismiss, modifier = Modifier.weight(1f)) { Text("Cancelar") }
+                Button(
+                    onClick = {
+                        titleError = title.trim().length !in 1..100
+                        if (!titleError && !descriptionError) {
+                            onSave(title.trim(), description.trim().takeIf(String::isNotEmpty), dueAt.takeIf { hasDueDate })
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                ) { Text("Salvar") }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
-        },
-    )
+        }
+    }
 
     if (showDatePicker) {
         TaskDatePickerDialog(

@@ -1,6 +1,9 @@
 package com.ego.mobile.feature.habits
 
 import com.ego.mobile.domain.model.Habit
+import com.ego.mobile.domain.model.HabitCalendar
+import com.ego.mobile.domain.usecase.observeHabitOccurrenceSnapshot
+import java.time.LocalDate
 import com.ego.mobile.domain.model.HabitFrequency
 import com.ego.mobile.domain.model.HabitOccurrence
 import com.ego.mobile.domain.model.HabitStatus
@@ -8,6 +11,7 @@ import com.ego.mobile.domain.repository.HabitRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -26,6 +30,13 @@ import org.junit.Test
 class FakeHabitRepository : HabitRepository {
     private val habitsFlow = MutableStateFlow<List<Habit>>(emptyList())
     private val internalHabits = mutableListOf<Habit>()
+
+    override fun observeHabitCalendars(): Flow<List<HabitCalendar>> = observeHabitOccurrenceSnapshot().map { snapshot ->
+        snapshot.habits.map { HabitCalendar(it, emptyList(), snapshot.occurrencesByHabit[it.id].orEmpty()) }
+    }
+
+    override suspend fun correctOccurrence(habitId: Long, date: LocalDate, completed: Boolean): Result<Unit> =
+        error("Not used in these tests")
 
     override suspend fun saveHabit(habit: Habit): Long {
         val nextId = if (internalHabits.isEmpty()) 1L else internalHabits.maxOf { it.id } + 1L
@@ -184,5 +195,24 @@ class HabitsViewModelTest {
         runCurrent()
         assertEquals("Habit name must be 1 to 80 characters.", viewModel.uiState.value.errorMessage)
         assertTrue(viewModel.uiState.value.activeHabits.isEmpty())
+    }
+
+    @Test
+    fun `editing habit updates its weekly goal preferences`() = runTest(dispatcher) {
+        val repository = FakeHabitRepository()
+        val viewModel = HabitsViewModel(repository, today = { LocalDate.of(2026, 11, 18) })
+        val id = repository.saveHabit(
+            Habit(name = "Leitura", frequency = HabitFrequency.Daily, createdAt = 1L, updatedAt = 1L),
+        )
+        runCurrent()
+
+        val weekly = HabitFrequency.TimesPerWeek(4, setOf(java.time.DayOfWeek.TUESDAY, java.time.DayOfWeek.THURSDAY))
+        viewModel.onUpdateHabitDetails(id, "Leitura", "10 páginas", weekly)
+        runCurrent()
+
+        val updated = repository.getHabitById(id)!!
+        assertEquals("Leitura", updated.name)
+        assertEquals("10 páginas", updated.description)
+        assertEquals(weekly, updated.frequency)
     }
 }

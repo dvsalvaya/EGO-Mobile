@@ -118,6 +118,39 @@ class WorkoutTemplateMigrationTest {
         assertEquals(4_000L, saved.durationMillis())
     }
 
+    @Test
+    fun migratesSevenWithoutInventingPastPlansOrChangingOccurrences() {
+        createLegacyDatabase(7) { db ->
+            db.execSQL(
+                "INSERT INTO habits VALUES (10, 'Ler', NULL, 'TIMES_PER_WEEK:3', 'ACTIVE', 1, 2)",
+            )
+            db.execSQL(
+                "INSERT INTO habit_occurrences VALUES (42, 10, '2020-01-03', 'COMPLETED', 123, 'livro', 7, 8)",
+            )
+            db.execSQL(
+                "INSERT INTO workout_sessions (id,title,startedAt,status,pausedAt,pausedDurationMillis) " +
+                    "VALUES (9,'Pausado',1000,'PAUSED',1300,50)",
+            )
+        }
+        val migrated = openWithRoom()
+        migrated.query("SELECT effectiveFrom, frequency FROM habit_plans WHERE habitId = 10").use {
+            assertTrue(it.moveToFirst())
+            assertEquals(java.time.LocalDate.now(com.ego.mobile.domain.model.habitZone).toString(), it.getString(0))
+            assertEquals("TIMES_PER_WEEK:3", it.getString(1))
+            assertEquals(false, it.moveToNext())
+        }
+        migrated.query("SELECT id,dateCivil,status,completedAt,notes,createdAt,updatedAt FROM habit_occurrences").use {
+            assertTrue(it.moveToFirst())
+            assertEquals(listOf("42","2020-01-03","COMPLETED","123","livro","7","8"), (0..6).map(it::getString))
+            assertEquals(false, it.moveToNext())
+        }
+        migrated.query("SELECT pausedAt, pausedDurationMillis FROM workout_sessions WHERE id = 9").use {
+            assertTrue(it.moveToFirst())
+            assertEquals(1300L, it.getLong(0))
+            assertEquals(50L, it.getLong(1))
+        }
+    }
+
     private fun createLegacyDatabase(version: Int, seed: (SQLiteDatabase) -> Unit) {
         EgoDatabaseProvider.resetForTesting()
         context.deleteDatabase(DATABASE_NAME)

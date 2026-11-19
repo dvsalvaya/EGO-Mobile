@@ -15,7 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import com.ego.mobile.core.ui.theme.EgoShape
+import com.ego.mobile.core.ui.theme.EgoSpacing
 
 @Composable
 fun PlaceholderScreen(
@@ -30,7 +31,7 @@ fun PlaceholderScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 32.dp),
+                .padding(horizontal = EgoSpacing.xl2, vertical = EgoSpacing.xxxl),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -41,15 +42,15 @@ fun PlaceholderScreen(
                 color = MaterialTheme.colorScheme.onBackground,
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(EgoSpacing.md))
 
             Column(
                 modifier = Modifier
                     .background(
                         color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(EgoShape.surface),
                     )
-                    .padding(20.dp),
+                    .padding(EgoSpacing.xl),
             ) {
                 Text(
                     text = subtitle,
@@ -57,7 +58,7 @@ fun PlaceholderScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(EgoSpacing.sm))
 
                 Text(
                     text = helperText,

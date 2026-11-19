@@ -4,6 +4,10 @@ data class HomeSummary(
     val todayHabits: List<TodayHabit>,
     val priorityTasks: List<Task>,
     val activeRoutine: ActiveRoutine?,
+    val todayHabitsTotal: Int = todayHabits.size,
+    val priorityTasksTotal: Int = priorityTasks.size,
+    val activeWorkout: ActiveRoutine? = activeRoutine?.takeIf { it.type == ActivityType.WORKOUT },
+    val haircareRoutine: ActiveRoutine? = activeRoutine?.takeIf { it.type == ActivityType.HAIRCARE },
 ) {
     data class TodayHabit(
         val habitId: Long,

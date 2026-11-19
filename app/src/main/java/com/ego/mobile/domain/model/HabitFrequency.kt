@@ -22,7 +22,7 @@ sealed class HabitFrequency {
         }
     }
 
-    data class TimesPerWeek(val count: Int) : HabitFrequency() {
+    data class TimesPerWeek(val count: Int, val preferredDays: Set<DayOfWeek> = emptySet()) : HabitFrequency() {
         init {
             require(count in 1..7) { "Times per week must be between 1 and 7." }
         }
@@ -31,7 +31,10 @@ sealed class HabitFrequency {
             return true
         }
 
-        override fun toPersistedValue(): String = "TIMES_PER_WEEK:$count"
+        override fun toPersistedValue(): String {
+            val days = preferredDays.sortedBy { it.value }.joinToString(",") { it.name }
+            return if (days.isEmpty()) "TIMES_PER_WEEK:$count" else "TIMES_PER_WEEK:$count:$days"
+        }
     }
 
     abstract fun requiresOccurrenceOn(date: LocalDate): Boolean
@@ -54,11 +57,15 @@ sealed class HabitFrequency {
                     if (days.isEmpty()) Daily else WeeklyDays(days)
                 }
                 value.startsWith("TIMES_PER_WEEK:", ignoreCase = true) -> {
-                    val count = value.removePrefix("TIMES_PER_WEEK:")
+                    val parts = value.split(':', limit = 3)
+                    val count = parts[1]
                         .toIntOrNull()
                         ?.coerceIn(1, 7)
                         ?: 1
-                    TimesPerWeek(count)
+                    val days = parts.getOrNull(2).orEmpty().split(',').mapNotNull { day ->
+                        DayOfWeek.values().find { it.name == day }
+                    }.toSet()
+                    TimesPerWeek(count, days)
                 }
                 else -> Daily
             }
