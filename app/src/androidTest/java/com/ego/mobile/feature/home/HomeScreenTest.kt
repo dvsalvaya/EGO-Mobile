@@ -90,7 +90,29 @@ class HomeScreenTest {
         composeRule.onNodeWithContentDescription("Criar").assertIsDisplayed()
         composeRule.onNodeWithTag("home_list").performScrollToNode(hasText("Consistência dos hábitos"))
         composeRule.onNodeWithText("Consistência dos hábitos").assertIsDisplayed()
+        composeRule.onAllNodesWithText("Ver tudo").assertCountEquals(2)
         composeRule.onAllNodesWithText("Tudo em dia").assertCountEquals(2)
+    }
+
+    @Test
+    fun emptyTodayCardsStayCompactAndWeekGridRemainsScrollable() {
+        composeRule.setContent { MaterialTheme { HomeScreen(viewModel = viewModel) } }
+        composeRule.waitUntil(5_000) { viewModel.uiState.value is HomeUiState.Content }
+
+        val maxCardHeightDp = if (composeRule.density.fontScale >= 1.25f) 310.dp else 240.dp
+        val maxCardHeightPx = with(composeRule.density) { maxCardHeightDp.toPx() }
+        listOf("home_today_habits_card", "home_today_tasks_card").forEach { tag ->
+            val cardHeight = composeRule.onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot.height
+            assertTrue("$tag should stay below $maxCardHeightDp, was ${cardHeight / composeRule.density.density}dp", cardHeight <= maxCardHeightPx)
+        }
+        composeRule.onAllNodesWithText("Tudo em dia").assertCountEquals(2)
+        composeRule.onNodeWithText("Quando houver hábitos previstos para hoje, eles aparecerão aqui.").performScrollTo()
+        composeRule.onNodeWithText("Quando houver hábitos previstos para hoje, eles aparecerão aqui.").assertIsDisplayed()
+        composeRule.onNodeWithText("Tarefas sem prazo e futuras ficam disponíveis na aba Tarefas.").performScrollTo()
+        composeRule.onNodeWithText("Tarefas sem prazo e futuras ficam disponíveis na aba Tarefas.").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_list").performScrollToNode(hasText("Consistência dos hábitos"))
+        composeRule.onAllNodes(hasContentDescription("hábitos concluídos", substring = true), useUnmergedTree = true)
+            .assertCountEquals(7)
     }
 
     @Test
@@ -139,7 +161,7 @@ class HomeScreenTest {
 
         openCreate("Novo hábito")
         composeRule.onNodeWithText("Nome").performTextInput("Meditar")
-        composeRule.onNodeWithText("Salvar").performClick()
+        composeRule.onNodeWithText("Salvar").performScrollTo().performClick()
         composeRule.waitUntil(5_000) {
             runBlocking { habitRepository.observeAllHabits().first().any { it.name == "Meditar" } }
         }
