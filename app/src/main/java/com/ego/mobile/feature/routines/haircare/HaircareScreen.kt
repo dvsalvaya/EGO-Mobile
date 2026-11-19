@@ -45,6 +45,7 @@ import com.ego.mobile.domain.model.HaircareStepType
 import com.ego.mobile.feature.routines.haircare.components.CurrentStepCard
 import com.ego.mobile.feature.routines.haircare.components.HaircareHistoryList
 import com.ego.mobile.feature.routines.haircare.components.RescheduleStepDialog
+import com.ego.mobile.feature.common.EmptyState as CommonEmptyState
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -88,9 +89,10 @@ fun HaircareScreen(
         ) {
             when (val state = uiState) {
                 HaircareUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                is HaircareUiState.Error -> EmptyState(
-                    title = "Não foi possível carregar os cuidados capilares",
-                    description = state.message,
+                is HaircareUiState.Error -> Text(
+                    text = state.message,
+                    modifier = Modifier.align(Alignment.Center).padding(24.dp),
+                    color = MaterialTheme.colorScheme.error,
                 )
                 is HaircareUiState.NoRoutineConfigured -> NoRoutineScreen(
                     onAdoptPreset = { viewModel.adoptStandardPreset() },
@@ -148,16 +150,10 @@ private fun NoRoutineScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(
-            text = "Cuidados capilares",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Monte uma rotina flexível e registre cada etapa quando realmente acontecer.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        CommonEmptyState(
+            title = "Cuidados capilares",
+            message = "Monte uma rotina flexível e registre cada etapa quando realmente acontecer.",
+            modifier = Modifier.fillMaxWidth(),
         )
         Spacer(modifier = Modifier.height(20.dp))
         Button(onClick = onAdoptPreset, modifier = Modifier.fillMaxWidth()) {
@@ -201,9 +197,10 @@ private fun ActiveRoutineScreen(
         item {
             val currentStep = state.currentStep
             if (currentStep == null) {
-                EmptyState(
+                CommonEmptyState(
                     title = "Tudo em dia",
-                    description = "Não há etapas pendentes nesta rotina.",
+                    message = "Não há etapas pendentes nesta rotina.",
+                    isCard = true,
                 )
             } else {
                 CurrentStepCard(
@@ -245,20 +242,6 @@ private fun ActiveRoutineScreen(
             }
         }
         HaircareHistoryList(state.history)
-    }
-}
-
-@Composable
-private fun EmptyState(
-    title: String,
-    description: String,
-) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(description, style = MaterialTheme.typography.bodyMedium)
-        }
     }
 }
 

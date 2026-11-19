@@ -5,6 +5,7 @@ import com.ego.mobile.domain.model.HomeSummary
 import com.ego.mobile.domain.model.HaircareOccurrenceStatus
 import com.ego.mobile.domain.model.HabitOccurrenceStatus
 import com.ego.mobile.domain.model.HabitProgress
+import com.ego.mobile.domain.model.HabitFrequency
 import com.ego.mobile.domain.model.HabitStatus
 import com.ego.mobile.domain.model.WorkoutSessionStatus
 import com.ego.mobile.domain.repository.HabitRepository
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetHomeSummaryUseCase(
@@ -36,19 +38,29 @@ class GetHomeSummaryUseCase(
                 .filter { habit ->
                     habit.status == HabitStatus.ACTIVE && habit.frequency.requiresOccurrenceOn(date)
                 }
-                .map { habit ->
+                .mapIndexed { index, habit ->
                     val occurrences = snapshot.occurrencesByHabit[habit.id].orEmpty()
                     val occurrence = occurrences.firstOrNull { it.date == date }
                     val progress = HabitProgress.calculate(habit, occurrences, date)
-                    HomeSummary.TodayHabit(
+                    if (occurrence?.status == HabitOccurrenceStatus.COMPLETED || !progress.canCompleteToday) {
+                        return@mapIndexed null
+                    }
+                    val priority = when (val frequency = habit.frequency) {
+                        HabitFrequency.Daily, is HabitFrequency.WeeklyDays -> 0
+                        is HabitFrequency.TimesPerWeek -> if (date.dayOfWeek in frequency.preferredDays) 0 else 1
+                    }
+                    priority to (index to HomeSummary.TodayHabit(
                         habitId = habit.id,
                         title = habit.name,
                         status = occurrence?.status ?: HabitOccurrenceStatus.PENDING,
                         completedThisWeek = progress.completedThisWeek,
                         weeklyTarget = progress.weeklyTarget,
                         canComplete = progress.canCompleteToday,
-                    )
+                    ))
                 }
+                .filterNotNull()
+                .sortedWith(compareBy({ it.first }, { it.second.first }))
+                .map { it.second.second }
                 .toList()
         }
         val haircareRoutine = haircareRepository.observeActiveRoutine().flatMapLatest { routine ->
@@ -96,12 +108,19 @@ class GetHomeSummaryUseCase(
                     )
                 }
 
+            val eligibleTasks = tasks.filter { task ->
+                task.dueAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.of("America/Sao_Paulo")).toLocalDate() <= today() } == true
+            }.sortedBy { task ->
+                task.dueAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.of("America/Sao_Paulo")).toLocalDate() }
+            }
             HomeSummary(
-                todayHabits = habits,
-                priorityTasks = tasks.sortedWith(
-                    compareBy({ it.dueAt == null }, { it.dueAt ?: Long.MAX_VALUE }),
-                ),
+                todayHabits = habits.take(3),
+                todayHabitsTotal = habits.size,
+                priorityTasks = eligibleTasks.take(3),
+                priorityTasksTotal = eligibleTasks.size,
                 activeRoutine = activeWorkout ?: haircare,
+                activeWorkout = activeWorkout,
+                haircareRoutine = haircare,
             )
         }
     }

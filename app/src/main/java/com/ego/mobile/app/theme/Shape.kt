@@ -1,10 +1,6 @@
 package com.ego.mobile.app.theme
 
-import androidx.compose.ui.unit.dp
+import com.ego.mobile.core.ui.theme.EgoShape
 
-// Formas e raios
-object Shape {
-    val control = 12.dp // controles/elementos compactos
-    val surface = 16.dp // superfícies e Bottom Sheets
-    val pill = 999.dp // pills reservadas a chips/badges
-}
+// Typealias / compatibilidade para tokens de forma da Spec 9
+typealias Shape = EgoShape

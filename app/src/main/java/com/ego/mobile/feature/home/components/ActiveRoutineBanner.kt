@@ -39,7 +39,7 @@ fun ActiveRoutineBanner(
             Text(routine.title, style = MaterialTheme.typography.titleLarge)
             routine.subtitle?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
             Button(onClick = onContinue) {
-                Text(if (routine.type == ActivityType.WORKOUT) "Continuar treino" else "Continuar rotina")
+                Text(if (routine.type == ActivityType.WORKOUT) "Continuar treino" else "Abrir Cabelo")
             }
         }
     }

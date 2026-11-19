@@ -1,5 +1,10 @@
 package com.ego.mobile.domain.usecase
 
+import com.ego.mobile.data.repository.FakeHabitDao
+import com.ego.mobile.data.repository.FakeHabitOccurrenceDao
+import com.ego.mobile.data.repository.HabitRepositoryImpl
+import com.ego.mobile.domain.model.habitZone
+import kotlinx.coroutines.flow.flowOf
 import com.ego.mobile.domain.model.ActivityType
 import com.ego.mobile.domain.model.Habit
 import com.ego.mobile.domain.model.HabitFrequency
@@ -28,6 +33,27 @@ import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HistoryUseCaseTest {
+    @Test
+    fun reopeningHistoryClosesEachElapsedDailyDateExactlyOnce() = runTest {
+        val dao = FakeHabitDao()
+        val occurrences = FakeHabitOccurrenceDao()
+        val habits = HabitRepositoryImpl(
+            dao, UnconfinedTestDispatcher(testScheduler), occurrences,
+        )
+        val today = LocalDate.of(2026, 11, 18)
+        val created = today.minusDays(2).atStartOfDay(habitZone).toInstant().toEpochMilli()
+        habits.saveHabit(Habit(name = "Leitura", frequency = HabitFrequency.Daily, createdAt = created, updatedAt = created))
+        val history = GetConsolidatedHistoryUseCase(
+            habits, FakeConsolidationTaskRepository(), FakeConsolidationWorkoutRepository(),
+            FakeConsolidationHaircareRepository(), dates = flowOf(today),
+        )
+
+        val rows = history().first()
+        assertEquals(listOf("Não fiz", "Não fiz"), rows.map { it.status })
+        assertEquals(2, rows.distinctBy { it.occurredAt }.size)
+        assertEquals(rows, history().first())
+    }
+
     @Test
     fun `merges completed activities from every repository in descending execution time`() = runTest {
         val habits = FakeConsolidationHabitRepository()

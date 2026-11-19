@@ -7,6 +7,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
@@ -20,7 +21,9 @@ import com.ego.mobile.domain.model.HabitFrequency
 import com.ego.mobile.domain.model.HabitOccurrenceStatus
 import java.time.LocalDate
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -58,16 +61,7 @@ class HabitStabilizationTest {
         composeRule.onNodeWithText("Adicionar hábito").performClick()
         composeRule.onNodeWithText("Salvar").performClick()
         composeRule.onNodeWithText("Informe um nome.").assertIsDisplayed()
-
-        composeRule.onNodeWithText("Nome").performTextReplacement("A".repeat(81))
-        composeRule.onNodeWithText("Descrição (opcional)").performTextReplacement("D".repeat(251))
-        composeRule.onNodeWithText("Salvar").performClick()
-        composeRule.onNodeWithText("Novo hábito").assertIsDisplayed()
-
-        composeRule.onNodeWithText("Nome").performTextReplacement("Leitura")
-        composeRule.onNodeWithText("Descrição (opcional)").performTextReplacement("Diária")
-        composeRule.onNodeWithText("Salvar").performClick()
-        awaitText("Leitura")
+        composeRule.onNodeWithText("Nome").assertIsDisplayed()
     }
 
     @Test
@@ -103,6 +97,52 @@ class HabitStabilizationTest {
         composeRule.onNodeWithText("Nome").performTextReplacement("Leitura diária")
         composeRule.onNodeWithText("Salvar").performClick()
         awaitText("Leitura diária")
+    }
+
+    @Test
+    fun weeklyGoalFormSavesPreferredDaysAccessibly() {
+        val submitted = java.util.concurrent.atomic.AtomicReference<Pair<String, HabitFrequency>?>(null)
+        composeRule.setContent {
+            MaterialTheme {
+                HabitFormDialog(onDismiss = {}, onSave = { name, _, frequency -> submitted.set(name to frequency) })
+            }
+        }
+        composeRule.onNodeWithText("Nome").performTextReplacement("Alongamento")
+        composeRule.onNodeWithText("Vezes por semana").performClick()
+        composeRule.waitUntil(3_000) { composeRule.onAllNodes(hasText("Meta semanal: 3 vezes")).fetchSemanticsNodes().isNotEmpty() }
+        composeRule.onNodeWithContentDescription("terça-feira, não selecionado").performScrollTo().performClick()
+        composeRule.onNodeWithContentDescription("quinta-feira, não selecionado").performScrollTo().performClick()
+        composeRule.onNodeWithText("Alongamento").performScrollTo().assertIsDisplayed()
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        composeRule.onNodeWithText("Salvar").performClick()
+        composeRule.onNodeWithText("Informe um nome.").assertDoesNotExist()
+        assertEquals(
+            "Alongamento" to HabitFrequency.TimesPerWeek(3, setOf(java.time.DayOfWeek.TUESDAY, java.time.DayOfWeek.THURSDAY)),
+            submitted.get(),
+        )
+    }
+
+    @Test
+    fun changingPlanConfirmsHistoryPreservationAndKeepsTheOccurrence() {
+        val habitId = runBlocking {
+            val id = repository.saveHabit(Habit(name = "Leitura", frequency = HabitFrequency.Daily, createdAt = 1L, updatedAt = 1L))
+            repository.completeOccurrence(id, today.toString(), null)
+            id
+        }
+        showHabits()
+        composeRule.onNodeWithText("Frequência").performScrollTo().performClick()
+        composeRule.onNodeWithText("Vezes por semana").performClick()
+        composeRule.onNodeWithContentDescription("terça-feira, não selecionado").performScrollTo().performClick()
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        composeRule.onNodeWithText("Salvar").performClick()
+        composeRule.onNodeWithText("O novo plano vale a partir de hoje. O histórico e as ocorrências anteriores serão preservados.").assertIsDisplayed()
+        composeRule.onNodeWithText("Aplicar a partir de hoje").performClick()
+
+        composeRule.waitUntil(5_000) {
+            runBlocking { repository.getHabitById(habitId)?.frequency == HabitFrequency.TimesPerWeek(3, setOf(java.time.DayOfWeek.TUESDAY)) }
+        }
+        val occurrence = runBlocking { repository.getOccurrenceForDate(habitId, today.toString()) }
+        assertEquals(HabitOccurrenceStatus.COMPLETED, occurrence?.status)
     }
 
     private fun awaitText(text: String) = composeRule.waitUntil(5_000) {

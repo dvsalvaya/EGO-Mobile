@@ -6,25 +6,25 @@
 
 Esta decomposição não autoriza implementação enquanto os portões da `docs/specs/README.md` não forem atendidos. Em cada tarefa com código, seguir TDD estrito: executar primeiro teste que falhe pelo comportamento esperado (RED), implementar o mínimo necessário (GREEN), refatorar com testes verdes (REFACTOR). Falha de compilação/configuração/ambiente não conta como RED.
 
-> **Nota de execução:** os relatórios de TASK-04, TASK-08 e TASK-09 registram trabalho anterior. TASK-04 muda de critério para a V1 e exige nova validação. TASK-08 e TASK-09 preservam suas evidências.
+> **Nota de execução:** TASK-04 teve o critério alterado para a grade da V1 e foi revalidada; ver `reports/TASK-04.md`. TASK-08 e TASK-09 preservam as evidências anteriores em seus relatórios.
 
 ## Sumário
 
 | ID | Tarefa | Status | Dependências |
 |---|---|---|---|
-| `TASK-01` | Criar tokens do tema escuro monocromático | `PENDING` | Nenhuma |
+| `TASK-01` | Criar tokens do tema escuro monocromático | `IMPLEMENTED` | Nenhuma |
 | `TASK-02` | Atualizar navegação principal e acesso ao Histórico interno | `PENDING` | `TASK-01` |
-| `TASK-03` | Padronizar componentes comuns de seção e estado vazio | `PENDING` | `TASK-01` |
-| `TASK-04` | Calcular grade de hábitos previstos em sete dias | `PENDING` para a V1 | `TASK-13` |
+| `TASK-03` | Padronizar componentes comuns de seção e estado vazio | `VERIFIED` | `TASK-01` |
+| `TASK-04` | Calcular grade de hábitos previstos em sete dias | `VERIFIED` | `TASK-13` |
 | `TASK-05` | Atualizar Home com indicadores e listas acionáveis do dia | `PENDING` | `TASK-02`, `TASK-03`, `TASK-04` |
-| `TASK-06` | Atualizar Hábitos com metas, dias preferidos e ações | `PENDING` | `TASK-01`, `TASK-03`, `TASK-13` |
+| `TASK-06` | Atualizar Hábitos com metas, dias preferidos e ações | `VERIFIED` | `TASK-01`, `TASK-03`, `TASK-13` |
 | `TASK-07` | Agrupar Tarefas por prazo e integrar o painel de detalhes | `PENDING` | `TASK-01`, `TASK-03`, RF-06 da Spec 10 |
 | `TASK-08` | Persistir modelos locais de treino com migration Room | `IN_PROGRESS` | Nenhuma |
 | `TASK-09` | Calcular estatísticas e evolução de carga por exercício | `IN_PROGRESS` | Nenhuma |
 | `TASK-10` | Atualizar tela Treinos com modelos, estatísticas e sessão atual | `PENDING` | `TASK-02`, `TASK-03`, `TASK-08`, `TASK-09` |
 | `TASK-11` | Adicionar calendário mensal à tela Cabelo | `PENDING` | `TASK-02`, `TASK-03` |
 | `TASK-12` | Verificar a integração da fase completa | `PENDING` | `TASK-07`, `TASK-10`, `TASK-11`, `TASK-14` |
-| `TASK-13` | Fechar períodos, preservar previsões e corrigir histórico de hábitos | `PENDING` | Base de hábitos da Spec 10 |
+| `TASK-13` | Fechar períodos, preservar previsões e corrigir histórico de hábitos | `VERIFIED` | Base de hábitos da Spec 10 |
 | `TASK-14` | Validar a V1 em Início, Hábitos e Histórico | `PENDING` | `TASK-05`, `TASK-06`, `TASK-13`, RF-06 da Spec 10 |
 
 ## Detalhamento

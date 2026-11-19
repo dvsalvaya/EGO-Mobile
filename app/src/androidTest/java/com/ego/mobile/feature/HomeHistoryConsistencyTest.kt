@@ -18,6 +18,7 @@ import com.ego.mobile.domain.model.Task
 import com.ego.mobile.domain.model.TaskStatus
 import com.ego.mobile.domain.usecase.GetConsolidatedHistoryUseCase
 import com.ego.mobile.domain.usecase.GetHomeSummaryUseCase
+import com.ego.mobile.domain.usecase.GetHabitDayGridUseCase
 import com.ego.mobile.feature.habits.HabitsViewModel
 import com.ego.mobile.feature.history.HistoryViewModel
 import com.ego.mobile.feature.home.HomeUiState
@@ -93,6 +94,7 @@ class HomeHistoryConsistencyTest {
             ),
             habitRepository = habitRepository,
             taskRepository = taskRepository,
+            getHabitDayGridUseCase = GetHabitDayGridUseCase(habitRepository, today = { today }),
             clock = { now + 1_000L },
             today = { today },
         ).also { viewModelStore.put("home", it) }
@@ -103,6 +105,7 @@ class HomeHistoryConsistencyTest {
                 workoutRepository = workoutRepository,
                 haircareRepository = haircareRepository,
             ),
+            habitRepository,
         ).also { viewModelStore.put("history", it) }
         val habitsViewModel = HabitsViewModel(habitRepository)
             .also { viewModelStore.put("habits", it) }
@@ -129,9 +132,7 @@ class HomeHistoryConsistencyTest {
             val homeState = homeViewModel.uiState.value as? HomeUiState.Content
             val historyItems = historyViewModel.uiState.value.items
             val tasksState = tasksViewModel.tasksUiState.value
-            homeState?.summary?.todayHabits?.any {
-                it.habitId == habitId && it.status == HabitOccurrenceStatus.COMPLETED
-            } == true &&
+            homeState?.summary?.todayHabits?.none { it.habitId == habitId } == true &&
                 historyItems.any { it.title == "Alongar" } &&
                 historyItems.any { it.title == "Revisar agenda" } &&
                 tasksState.openTasks.none { it.id == taskId } &&

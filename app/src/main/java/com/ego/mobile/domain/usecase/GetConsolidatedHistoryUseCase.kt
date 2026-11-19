@@ -2,7 +2,7 @@ package com.ego.mobile.domain.usecase
 
 import com.ego.mobile.domain.model.ActivityType
 import com.ego.mobile.domain.model.HistoryItem
-import com.ego.mobile.domain.model.HabitOccurrenceStatus
+import java.time.LocalDate
 import com.ego.mobile.domain.model.HaircareOccurrenceStatus
 import com.ego.mobile.domain.model.TaskStatus
 import com.ego.mobile.domain.model.WorkoutSessionStatus
@@ -18,32 +18,17 @@ class GetConsolidatedHistoryUseCase(
     private val taskRepository: TaskRepository,
     private val workoutRepository: WorkoutRepository,
     private val haircareRepository: HaircareRepository,
+    private val dates: Flow<LocalDate> = habitDates(),
 ) {
     operator fun invoke(): Flow<List<HistoryItem>> = combine(
-        habitRepository.observeHabitOccurrenceSnapshot(),
+        habitRepository.observeHabitCalendars(),
+        dates,
         taskRepository.getCompletedTasks(),
         workoutRepository.getCompletedSessions(),
         haircareRepository.observeCompletedOccurrences(),
-    ) { habitSnapshot, tasks, workouts, haircare ->
+    ) { calendars, today, tasks, workouts, haircare ->
         buildList {
-            habitSnapshot.habits.forEach { habit ->
-                habitSnapshot.occurrencesByHabit[habit.id]
-                    .orEmpty()
-                    .filter { it.status == HabitOccurrenceStatus.COMPLETED }
-                    .forEach { occurrence ->
-                        occurrence.completedAt?.let { completedAt ->
-                            add(
-                                HistoryItem(
-                                    occurredAt = completedAt,
-                                    type = ActivityType.HABIT,
-                                    title = habit.name,
-                                    subtitle = occurrence.notes?.takeIf(String::isNotBlank),
-                                    status = HabitOccurrenceStatus.COMPLETED.name,
-                                ),
-                            )
-                        }
-                    }
-            }
+            calendars.forEach { addAll(it.history(today)) }
             tasks.filter { it.status == TaskStatus.COMPLETED }.forEach { task ->
                 task.completedAt?.let { completedAt ->
                     add(
