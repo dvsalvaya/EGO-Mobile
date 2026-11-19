@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.ego.mobile.domain.model.Task
 import com.ego.mobile.domain.model.TaskStatus
@@ -53,6 +54,7 @@ fun TaskDetailsBottomSheet(
             Text(
                 task.dueAt?.let { "Prazo: ${formatDate(it)}" } ?: "Sem prazo",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.testTag("task_details_due_date"),
             )
             task.completedAt?.let {
                 Text(

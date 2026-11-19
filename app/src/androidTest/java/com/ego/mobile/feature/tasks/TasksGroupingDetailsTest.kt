@@ -9,6 +9,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.performClick
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
@@ -72,7 +74,7 @@ class TasksGroupingDetailsTest {
 
         composeRule.onNodeWithContentDescription("Detalhes da tarefa: Detalhar").performClick()
         composeRule.onNodeWithText("Descrição completa").assertIsDisplayed()
-        composeRule.onAllNodesWithText("Sem prazo").assertCountEquals(2)
+        composeRule.onNodeWithTag("task_details_due_date").assertTextEquals("Sem prazo")
         composeRule.onNodeWithText("Concluir").assertIsDisplayed()
         composeRule.onNodeWithText("Editar").assertIsDisplayed()
         composeRule.onNodeWithText("Reagendar").assertIsDisplayed()
