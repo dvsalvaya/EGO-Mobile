@@ -24,6 +24,7 @@ class TaskItemAccessibilityTest {
     @Test
     fun completionCheckboxHasTaskSpecificAccessibleNameAndMinimumTouchTarget() {
         var completed = false
+        var detailsOpened = false
         composeRule.setContent {
             MaterialTheme {
                 TaskItem(
@@ -35,9 +36,7 @@ class TaskItemAccessibilityTest {
                     ),
                     nowMillis = 1L,
                     onComplete = { completed = true },
-                    onEdit = {},
-                    onReschedule = {},
-                    onDelete = {},
+                    onClick = { detailsOpened = true },
                 )
             }
         }
@@ -51,10 +50,8 @@ class TaskItemAccessibilityTest {
         assertTrue("Checkbox touch target height must be at least 48dp", bounds.height >= minimumTargetPx)
         checkbox.performClick()
 
-        val editAction = composeRule.onNodeWithText("Editar")
-        val editBounds = editAction.fetchSemanticsNode().boundsInRoot
-        assertTrue("Text action touch target width must be at least 48dp", editBounds.width >= minimumTargetPx)
-        assertTrue("Text action touch target height must be at least 48dp", editBounds.height >= minimumTargetPx)
         composeRule.runOnIdle { assertTrue(completed) }
+        composeRule.onNodeWithText("Revisar proposta").performClick()
+        composeRule.runOnIdle { assertTrue(detailsOpened) }
     }
 }
