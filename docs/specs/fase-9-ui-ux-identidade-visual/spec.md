@@ -4,10 +4,12 @@
 
 - **ID:** `fase-9-ui-ux-identidade-visual`
 - **Nome:** UI/UX e Identidade Visual do EGO Mobile
-- **Status:** `APPROVED`
+- **Status:** `VERIFIED`
 - **Aprovação:** Escopo e critérios de aceite aprovados por `v1-ui/ux` em 19/11/2026, sobre a versão integrada `40b362c`.
 
 Esta proposta especifica uma evolução visual e de navegação sobre a arquitetura existente. A decisão técnica sobre o plano é registrada em `plan.md`.
+
+Verificação técnica concluída em 19/11/2026 sobre a integração `3db7b31`. As 14 tarefas estão verificadas. As evidências dos 18 critérios constam na [matriz de aceite](RETOMADA.md).
 
 ## 1. Problema e objetivo
 

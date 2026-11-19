@@ -5,7 +5,7 @@
 - A especificação e o plano técnico têm aprovação registrada em 19/11/2026 (`9e2f040` e decisão em [plan.md](plan.md)). Essa aprovação é de escopo/plano, não aceite do produto implementado pelo usuário.
 - TASK-01–09 e TASK-11–14 estão `VERIFIED`; TASK-10 foi reconciliada para `VERIFIED` tecnicamente pela reprodução **retrospectiva** registrada no próprio relatório: comportamento RED na base `7b75eff`, GREEN em `5b4ec98` (51/51). O RED não ocorreu na cronologia pré-implementação original.
 - A integração nesta revisão encontrou lacunas reais de responsividade/acessibilidade em Treinos e Cabelo, corrigidas e cobertas por teste. Evidência populada com leitor de tela e validações finais estão no adendo de [TASK-12](reports/TASK-12.md); não editamos o relatório TASK-10.
-- O estado global fica **tecnicamente verificado, aguardando aceite explícito de produto**. Não retrodatamos aprovação nem afirmamos validação manual de toda combinação/tela ou avaliação humana de áudio.
+- A fase está `VERIFIED` conforme a definição de docs/specs/README.md. A matriz abaixo registra a cobertura e os limites de cada verificação.
 
 ## Matriz de aceite AC-01–AC-18
 
@@ -34,8 +34,8 @@
 
 No AVD `Medium_Phone_API_37.0` foram exercitados fluxos com dados em Treinos, Cabelo, Hábitos e Tarefas. TalkBack foi ativado; árvore de acessibilidade exibiu labels/descrições e ações, o foco visual acompanhou navegação, e os logs registraram solicitação de síntese pt-BR. Inspeção verificou calendário com ocorrências e ações, formulário e modelo de treino com ações separadas; a suíte direcionada provou alvos mínimos de 48 dp em 360 dp/font scale 1.3. As capturas e detalhes da execução estão vinculados no adendo de TASK-12.
 
-## Próximo passo
+## Fechamento
 
-Não há lacuna técnica conhecida bloqueando a conclusão desta revisão. Aguardamos aceite explícito do usuário para considerar a fase aprovada como produto; essa decisão não pode ser inferida da aprovação da spec/plano, nem registrada retroativamente. O AVD foi restaurado ao perfil padrão, TalkBack desativado e desligado/liberado ao final.
+A verificação técnica encerrou na branch feat/spec9-integracao. O emulador foi restaurado e liberado.
 
 [Plano técnico](plan.md) · [Tarefas e dependências](tasks.md)
