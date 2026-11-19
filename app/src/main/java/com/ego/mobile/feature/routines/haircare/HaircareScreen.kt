@@ -45,6 +45,7 @@ import com.ego.mobile.domain.model.HaircareStepType
 import com.ego.mobile.feature.routines.haircare.components.CurrentStepCard
 import com.ego.mobile.feature.routines.haircare.components.HaircareHistoryList
 import com.ego.mobile.feature.routines.haircare.components.RescheduleStepDialog
+import com.ego.mobile.feature.routines.haircare.components.HaircareCalendar
 import com.ego.mobile.feature.common.EmptyState as CommonEmptyState
 import java.time.LocalDate
 import java.time.ZoneId
@@ -105,6 +106,9 @@ fun HaircareScreen(
                         reschedulingStepId = step.id
                         reschedulingDate = step.scheduledDate
                     },
+                    onPreviousMonth = viewModel::showPreviousMonth,
+                    onNextMonth = viewModel::showNextMonth,
+                    onSelectDate = viewModel::selectDate,
                 )
             }
         }
@@ -171,6 +175,9 @@ private fun ActiveRoutineScreen(
     state: HaircareUiState.ActiveRoutine,
     onRecordExecution: (Long) -> Unit,
     onReschedule: (HaircareOccurrence) -> Unit,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit,
+    onSelectDate: (LocalDate) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -191,6 +198,39 @@ private fun ActiveRoutineScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+            }
+        }
+        item {
+            Text("Calendário capilar", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            HaircareCalendar(
+                month = state.selectedMonth,
+                selectedDate = state.selectedDate,
+                occurrences = state.calendarOccurrences,
+                onPreviousMonth = onPreviousMonth,
+                onNextMonth = onNextMonth,
+                onSelectDate = onSelectDate,
+            )
+        }
+        item {
+            Text("Etapas de ${state.selectedDate.dayOfMonth}/${state.selectedDate.monthValue}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        }
+        val selectedDayOccurrences = state.calendarOccurrences.filter { it.scheduledDate == state.selectedDate.toString() }
+        if (selectedDayOccurrences.isEmpty()) {
+            item { Text("Nenhuma etapa neste dia.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        } else {
+            items(selectedDayOccurrences, key = { "calendar-${it.id}" }) { occurrence ->
+                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(occurrence.stepTitle, style = MaterialTheme.typography.bodyMedium)
+                        Text("${occurrence.stepType.displayName} · ${if (occurrence.status == HaircareOccurrenceStatus.COMPLETED) "Concluída" else if (occurrence.status == HaircareOccurrenceStatus.RESCHEDULED) "Reagendada" else "Pendente"}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    if (occurrence.status == HaircareOccurrenceStatus.PENDING || occurrence.status == HaircareOccurrenceStatus.RESCHEDULED) {
+                        Column(horizontalAlignment = Alignment.End) {
+                            TextButton(onClick = { onRecordExecution(occurrence.id) }) { Text("Registrar execução") }
+                            TextButton(onClick = { onReschedule(occurrence) }) { Text("Reagendar") }
+                        }
+                    }
                 }
             }
         }
