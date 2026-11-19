@@ -4,10 +4,10 @@
 
 - **ID:** `fase-9-ui-ux-identidade-visual`
 - **Nome:** UI/UX e Identidade Visual do EGO Mobile
-- **Status:** `DRAFT`
-- **Aprovação:** Pendente de revisão explícita do responsável pelo produto.
+- **Status:** `APPROVED`
+- **Aprovação:** Escopo e critérios de aceite aprovados por `v1-ui/ux` em 19/11/2026, sobre a versão integrada `40b362c`.
 
-Esta proposta especifica uma evolução visual e de navegação sobre a arquitetura existente. O status permanece `DRAFT`; não autoriza implementação até que a especificação e o plano técnico sejam aprovados conforme `docs/specs/README.md`.
+Esta proposta especifica uma evolução visual e de navegação sobre a arquitetura existente. A decisão técnica sobre o plano é registrada em `plan.md`.
 
 ## 1. Problema e objetivo
 
@@ -70,7 +70,7 @@ O objetivo desta fase é estabelecer uma identidade visual monocromática compar
 
 ### 6.1 Paleta proposta
 
-Os valores abaixo traduzem as decisões visuais aprovadas em uma paleta concreta para revisão. A especificação está em `DRAFT`; valores e contrastes devem ser aprovados/verificados antes da implementação.
+Os valores abaixo traduzem as decisões visuais aprovadas em uma paleta concreta para revisão. A aprovação de produto abrange a paleta proposta. A verificação dos contrastes integra o aceite técnico.
 
 | Token semântico | Valor | Uso |
 |---|---:|---|
