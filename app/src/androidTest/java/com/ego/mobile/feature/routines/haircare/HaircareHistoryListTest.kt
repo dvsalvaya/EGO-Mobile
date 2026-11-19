@@ -5,6 +5,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertTrue
@@ -34,6 +38,7 @@ class HaircareHistoryListTest {
             viewModel.uiState.value is HaircareUiState.ActiveRoutine
         }
 
+        composeRule.onNodeWithTag("haircare_screen_list").performScrollToIndex(6)
         composeRule.onNodeWithText("Histórico de cuidados").assertIsDisplayed()
         composeRule.onNodeWithText("Nutrição concluída").assertIsDisplayed()
         composeRule.onNodeWithText("Reconstrução concluída").assertIsDisplayed()
@@ -45,6 +50,28 @@ class HaircareHistoryListTest {
         val olderY = composeRule.onNodeWithText("Nutrição concluída")
             .fetchSemanticsNode().boundsInRoot.top
         assertTrue("Newest completion should appear first", newerY < olderY)
+    }
+
+    @Test
+    fun calendarNavigatesMonthsAndSelectsDayWithOccurrence() {
+        val viewModel = HaircareViewModel(HistoryHaircareRepository())
+        composeRule.setContent {
+            MaterialTheme {
+                HaircareScreen(viewModel)
+            }
+        }
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            viewModel.uiState.value is HaircareUiState.ActiveRoutine
+        }
+        composeRule.onNodeWithText("Calendário capilar").assertIsDisplayed()
+        composeRule.onNodeWithText("Novembro 2026").assertIsDisplayed()
+
+        composeRule.onNodeWithContentDescription("12 de Novembro de 2026, 1 concluída").performClick()
+        composeRule.onNodeWithText("Etapas de 12/11").assertIsDisplayed()
+        composeRule.onNodeWithText("Nutrição concluída").assertIsDisplayed()
+
+        composeRule.onNodeWithContentDescription("Próximo mês").performClick()
+        composeRule.onNodeWithText("Dezembro 2026").assertIsDisplayed()
     }
 }
 

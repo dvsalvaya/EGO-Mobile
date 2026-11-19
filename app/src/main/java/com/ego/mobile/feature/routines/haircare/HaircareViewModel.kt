@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -49,6 +50,8 @@ class HaircareViewModel(
 
     private val eventChannel = Channel<HaircareEvent>(Channel.BUFFERED)
     val events: Flow<HaircareEvent> = eventChannel.receiveAsFlow()
+    private val selectedMonth = MutableStateFlow(YearMonth.from(today()))
+    private val selectedDate = MutableStateFlow(today())
 
     init {
         repository.observeActiveRoutine()
@@ -59,7 +62,15 @@ class HaircareViewModel(
                     combine(
                         repository.observeOccurrencesForRoutine(routine.id),
                         repository.observeCompletedOccurrences(),
-                    ) { occurrences, completed ->
+                        selectedMonth,
+                        selectedDate,
+                    ) { occurrences, completed, month, date ->
+                        val allOccurrences = (occurrences + completed)
+                            .filter { it.routineId == routine.id }
+                            .distinctBy { it.id }
+                        val visibleMonthOccurrences = allOccurrences
+                            .filter { runCatching { LocalDate.parse(it.scheduledDate) }.getOrNull()?.let { day -> YearMonth.from(day) == month } == true }
+                            .sortedWith(compareBy<HaircareOccurrence>({ it.scheduledDate }, { it.orderIndex }))
                         val scheduled = occurrences
                             .filter {
                                 it.status == HaircareOccurrenceStatus.PENDING ||
@@ -71,6 +82,9 @@ class HaircareViewModel(
                             currentStep = scheduled.firstOrNull(),
                             upcomingSteps = scheduled.drop(1),
                             history = completed.filter { it.routineId == routine.id },
+                            selectedMonth = month,
+                            selectedDate = date,
+                            calendarOccurrences = visibleMonthOccurrences,
                         )
                     }
                 }
@@ -130,6 +144,25 @@ class HaircareViewModel(
             is HaircareUiState.Error -> Unit
             HaircareUiState.Loading -> Unit
         }
+    }
+
+    fun selectDate(date: LocalDate) {
+        selectedDate.value = date
+        selectedMonth.value = YearMonth.from(date)
+    }
+
+    fun showPreviousMonth() {
+        selectedMonth.value = selectedMonth.value.minusMonths(1)
+        selectedDate.value = selectedMonth.value.atDay(
+            minOf(selectedDate.value.dayOfMonth, selectedMonth.value.lengthOfMonth()),
+        )
+    }
+
+    fun showNextMonth() {
+        selectedMonth.value = selectedMonth.value.plusMonths(1)
+        selectedDate.value = selectedMonth.value.atDay(
+            minOf(selectedDate.value.dayOfMonth, selectedMonth.value.lengthOfMonth()),
+        )
     }
 
     private fun createRoutine(

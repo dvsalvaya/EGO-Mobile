@@ -118,6 +118,35 @@ class HaircareViewModelTest {
         assertEquals("2026-11-20", rescheduled.scheduledDate)
         assertEquals(HaircareOccurrenceStatus.RESCHEDULED, rescheduled.status)
     }
+
+    @Test
+    fun `calendar month navigation clamps selected day and filters occurrences`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        runCurrent()
+        viewModel.adoptStandardPreset(today)
+        runCurrent()
+
+        var state = viewModel.uiState.value as HaircareUiState.ActiveRoutine
+        assertEquals(java.time.YearMonth.of(2026, 11), state.selectedMonth)
+        assertTrue(state.calendarOccurrences.all { it.scheduledDate.startsWith("2026-11-") })
+
+        viewModel.selectDate(LocalDate.of(2026, 11, 30))
+        viewModel.showNextMonth()
+        runCurrent()
+        state = viewModel.uiState.value as HaircareUiState.ActiveRoutine
+        assertEquals(java.time.YearMonth.of(2026, 12), state.selectedMonth)
+        assertEquals(LocalDate.of(2026, 12, 30), state.selectedDate)
+
+        viewModel.selectDate(LocalDate.of(2026, 12, 31))
+        viewModel.showNextMonth()
+        runCurrent()
+        state = viewModel.uiState.value as HaircareUiState.ActiveRoutine
+        assertEquals(LocalDate.of(2027, 1, 31), state.selectedDate)
+        viewModel.showPreviousMonth()
+        runCurrent()
+        state = viewModel.uiState.value as HaircareUiState.ActiveRoutine
+        assertEquals(LocalDate.of(2026, 12, 31), state.selectedDate)
+    }
 }
 
 private class FakeHaircareRepository : HaircareRepository {
