@@ -40,6 +40,7 @@ import com.ego.mobile.feature.tasks.components.DeleteConfirmDialog
 import com.ego.mobile.feature.tasks.components.RescheduleDialog
 import com.ego.mobile.feature.tasks.components.TaskFormDialog
 import com.ego.mobile.feature.tasks.components.TaskItem
+import com.ego.mobile.feature.tasks.components.TaskDetailsBottomSheet
 import kotlinx.coroutines.flow.collectLatest
 import java.time.LocalDate
 import java.time.ZoneId
@@ -54,6 +55,7 @@ fun TasksScreen(
     var editingTask by remember { mutableStateOf<Task?>(null) }
     var taskToReschedule by remember { mutableStateOf<Task?>(null) }
     var taskToDelete by remember { mutableStateOf<Task?>(null) }
+    var taskDetails by remember { mutableStateOf<Task?>(null) }
 
     LaunchedEffect(viewModel, snackbarHostState) {
         viewModel.events.collectLatest { event ->
@@ -166,18 +168,46 @@ fun TasksScreen(
                         ),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        items(uiState.visibleTasks, key = { it.id }) { task ->
-                            TaskItem(
-                                task = task,
-                                nowMillis = uiState.currentTimeMillis,
-                                onComplete = { viewModel.onCompleteTask(task.id) },
-                                onEdit = {
-                                    editingTask = task
-                                    showForm = true
-                                },
-                                onReschedule = { taskToReschedule = task },
-                                onDelete = { taskToDelete = task },
-                            )
+                        if (uiState.showCompletedTasks) {
+                            item(key = "completed-heading") {
+                                Text("Concluídas", style = MaterialTheme.typography.titleLarge)
+                            }
+                            items(uiState.completedTasks, key = { "completed-${it.id}" }) { task ->
+                                TaskItem(
+                                    task = task,
+                                    nowMillis = uiState.currentTimeMillis,
+                                    onComplete = {},
+                                    onClick = { taskDetails = task },
+                                )
+                            }
+                        } else {
+                            uiState.taskGroups.forEach { group ->
+                                item(key = "heading-${group.type.name}") {
+                                    Text(group.type.title, style = MaterialTheme.typography.titleLarge)
+                                }
+                                if (group.tasks.isEmpty()) {
+                                    item(key = "empty-${group.type.name}") {
+                                        Text(
+                                            when (group.type) {
+                                                TaskGroupType.OVERDUE -> "Nenhuma tarefa atrasada."
+                                                TaskGroupType.TODAY -> "Nenhuma tarefa para hoje."
+                                                TaskGroupType.UPCOMING -> "Nenhuma tarefa próxima ou sem prazo."
+                                            },
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(vertical = 4.dp),
+                                        )
+                                    }
+                                } else {
+                                    items(group.tasks, key = { "${group.type.name}-${it.id}" }) { task ->
+                                        TaskItem(
+                                            task = task,
+                                            nowMillis = uiState.currentTimeMillis,
+                                            onComplete = { viewModel.onCompleteTask(task.id) },
+                                            onClick = { taskDetails = task },
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -202,6 +232,31 @@ fun TasksScreen(
                     )
                 }
                 showForm = false
+            },
+        )
+    }
+
+    taskDetails?.let { task ->
+        TaskDetailsBottomSheet(
+            task = task,
+            nowMillis = uiState.currentTimeMillis,
+            onDismiss = { taskDetails = null },
+            onComplete = {
+                viewModel.onCompleteTask(task.id)
+                taskDetails = null
+            },
+            onEdit = {
+                editingTask = task
+                taskDetails = null
+                showForm = true
+            },
+            onReschedule = {
+                taskDetails = null
+                taskToReschedule = task
+            },
+            onDelete = {
+                taskDetails = null
+                taskToDelete = task
             },
         )
     }

@@ -1,5 +1,6 @@
 package com.ego.mobile.feature.tasks.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,14 +8,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,102 +32,57 @@ fun TaskItem(
     task: Task,
     nowMillis: Long,
     onComplete: () -> Unit,
-    onEdit: () -> Unit,
-    onReschedule: () -> Unit,
-    onDelete: () -> Unit,
+    onClick: () -> Unit,
 ) {
     val isOverdue = task.isOverdue(nowMillis)
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
+            .semantics { contentDescription = "Detalhes da tarefa: ${task.title}" },
         colors = CardDefaults.cardColors(
-            containerColor = if (isOverdue) {
-                MaterialTheme.colorScheme.errorContainer
-            } else {
-                MaterialTheme.colorScheme.surface
-            },
+            containerColor = if (isOverdue) MaterialTheme.colorScheme.errorContainer
+            else MaterialTheme.colorScheme.surface,
         ),
         shape = RoundedCornerShape(18.dp),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Checkbox(
                 checked = task.status == TaskStatus.COMPLETED,
                 onCheckedChange = { if (it) onComplete() },
                 enabled = task.status == TaskStatus.OPEN,
-                modifier = Modifier
-                    .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
-                    .semantics {
-                        contentDescription = "Concluir tarefa: ${task.title}"
-                    },
+                modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                    .semantics { contentDescription = "Concluir tarefa: ${task.title}" },
             )
             Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.weight(1f).padding(vertical = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
             ) {
                 Text(
                     text = task.title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    textDecoration = if (task.status == TaskStatus.COMPLETED) {
-                        TextDecoration.LineThrough
-                    } else {
-                        TextDecoration.None
-                    },
+                    textDecoration = if (task.status == TaskStatus.COMPLETED) TextDecoration.LineThrough
+                    else TextDecoration.None,
                 )
-                if (!task.description.isNullOrBlank()) {
-                    Text(
-                        text = task.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                if (isOverdue) {
-                    Text(
-                        text = "⚠ Atrasada",
-                        style = MaterialTheme.typography.labelLarge,
+                when {
+                    isOverdue -> Text(
+                        text = "⚠ Atrasada · Prazo: ${formatDate(task.dueAt!!)}",
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onErrorContainer,
                     )
-                }
-                task.dueAt?.let {
-                    Text(
-                        text = "Prazo: ${formatDate(it)}",
+                    task.dueAt != null -> Text(
+                        text = "Prazo: ${formatDate(task.dueAt)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                }
-                if (task.status == TaskStatus.COMPLETED) {
-                    task.completedAt?.let {
-                        Text(
-                            text = "Concluída em ${formatDate(it)}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    TextButton(
-                        onClick = onEdit,
-                        modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp),
-                    ) {
-                        Text("Editar")
-                    }
-                    if (isOverdue) {
-                        OutlinedButton(
-                            onClick = onReschedule,
-                            modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp),
-                        ) {
-                            Text("Reagendar")
-                        }
-                    }
-                    TextButton(
-                        onClick = onDelete,
-                        modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp),
-                    ) {
-                        Text("Excluir")
-                    }
+                    else -> Text(
+                        text = "Sem prazo",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }
